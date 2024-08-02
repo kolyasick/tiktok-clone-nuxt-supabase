@@ -1,39 +1,24 @@
 <script setup>
-import { COLLECTION_VIDEOS, DB_ID } from '~~/app.constants';
+import { updateItem } from '~~/services/database';
 import { useAuthStore } from '~~/stores/auth.store';
 import { useVideoStore } from '~~/stores/videos.store';
-const { $generalStore } = useNuxtApp()
+const { $generalStore } = useNuxtApp();
 
 const authStore = useAuthStore();
-const videoStore = useVideoStore();
 const router = useRouter();
 
 const props = defineProps({
     video: Object,
-    loadMore: Function
 });
 
 let videoplay = ref(null);
 let videoContainer = ref(null);
 let isMuted = ref(true);
-let volume = ref(5); 
+let volume = ref(5);
 let isLiking = ref(false);
-const likes = ref(0);
 
-// Element to trigger loadMore
 const loadMoreTrigger = ref(null);
-
-const togglePlayPause = async () => {
-    if (videoplay.value.paused) {
-        try {
-            await videoplay.value.play();
-        } catch (error) {
-            console.error('Error playing video:', error);
-        }
-    } else {
-        videoplay.value.pause();
-    }
-};
+const isModalVisible = ref(false);
 
 const toggleMute = () => {
     isMuted.value = !isMuted.value;
@@ -48,58 +33,35 @@ const updateVolume = (event) => {
 const toggleLike = async (video) => {
     if (!authStore.user.status) {
         $generalStore.isLoginOpen = true;
-    } else if (video.users_like.find((like) => like.$id === authStore.user.$id)) {
-        video.is_liked = false;
-        video.likes--;
-        video.users_like = video.users_like.filter((like) => like.$id !== authStore.user.$id);
-        try {
-            isLiking.value = true;
-            await DB.updateDocument(DB_ID, COLLECTION_VIDEOS, video.$id, {
-                likes: video.likes,
-                users_like: video.users_like
-            });
-            await videoStore.getVideos();
-        } catch (error) {
-            console.log(error);
-            video.is_liked = true;
-            video.likes++;
-            video.users_like.push(authStore.user.$id);
-        } finally {
-            isLiking.value = false;
-        }
+        return;
+    }
+
+    const userId = authStore.user.id;
+    const hasLiked = video.likes.includes(userId);
+    let updatedLikes;
+
+    if (!hasLiked) {
+        video.liked = true;
+        updatedLikes = [...video.likes, userId];
     } else {
-        video.is_liked = true;
-        video.likes++;
-        video.users_like.push(authStore.user.$id);
-        try {
-            isLiking.value = true;
-            await DB.updateDocument(DB_ID, COLLECTION_VIDEOS, video.$id, {
-                likes: video.likes,
-                users_like: video.users_like
-            });
-            await videoStore.getVideos();
-        } catch (error) {
-            console.log(error);
-            video.is_liked = false;
-            video.likes--;
-            video.users_like = video.users_like.filter((like) => like.$id !== authStore.user.$id);
-        } finally {
-            isLiking.value = false;
-        }
+        video.liked = false;
+        updatedLikes = video.likes.filter(like => like !== userId);
+    }
+
+    try {
+        await updateItem('videos', video.id, { likes: updatedLikes });
+        video.likes = updatedLikes;
+    } catch (error) {
+        console.log('Error updating video likes:', error);
     }
 };
 
 const displayPost = (video) => {
-    if (!authStore.user.status) {
-        $generalStore.isLoginOpen = true;
-        return;
-    }
     $generalStore.setBackUrl('/');
     $generalStore.selectedPost = null;
-    setTimeout(() => router.push(`/video/${video.$id}`), 200);
+    setTimeout(() => router.push(`/video/${video.id}`), 200);
 };
 
-// Intersection Observer to play video when in view
 const handleIntersection = (entries) => {
     entries.forEach((entry) => {
         if (entry.isIntersecting) {
@@ -111,43 +73,45 @@ const handleIntersection = (entries) => {
     });
 };
 
-// Intersection Observer to load more videos
-const handleLoadMoreIntersection = (entries) => {
-    entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-            props.loadMore();
-        }
-    });
+const shareVideo = async (video) => {
+    const videoUrl = `${window.location.origin}/video/${video.id}`;
+    try {
+        await navigator.clipboard.writeText(videoUrl);
+        isModalVisible.value = true;
+        setTimeout(() => {
+            isModalVisible.value = false;
+        }, 2000);
+    } catch (error) {
+        console.error('Error copying video link:', error);
+        alert('Failed to copy video link');
+    }
 };
 
 onMounted(() => {
-    // Observe video container for play/pause
+    videoplay.value.volume = volume.value / 100;
     const observer = new IntersectionObserver(handleIntersection, {
         root: null,
-        threshold: 0.5 // Adjust this threshold as needed
+        threshold: 0.5,
     });
     observer.observe(videoContainer.value);
-
-    // Observe load more trigger
-    const loadMoreObserver = new IntersectionObserver(handleLoadMoreIntersection, {
-        root: null,
-        threshold: 1.0 // Adjust this threshold as needed
-    });
-    if (loadMoreTrigger.value) {
-        loadMoreObserver.observe(loadMoreTrigger.value);
-    }
 });
 </script>
 
+
 <template>
-    <div :id="`PostMain-${video.$id}`" ref="videoContainer" class="postmain flex border-b py-6">
+    <div :id="`PostMain-${video.id}`" ref="videoContainer" class="postmain flex border-b py-6">
         <div class="pl-3 w-full px-4 ">
             <div class="flex items-center justify-between pb-0.5">
                 <button>
-                    <span class="font-bold hover:underline cursor-pointer">
-                        {{ video.user.name }}
-                    </span>
-                    <span class="text-[13px] text-light text-gray-500 pl-1 cursor-pointer">
+                    <span class="font-bold hover:underline cursor-pointer flex items-center gap-2">
+                        <NuxtLink :to="`/profile/${video.user_id}`">
+                            <img 
+                                    class="rounded-full border" 
+                                    width="33" 
+                                    :src="video.user.avatar"
+                                >
+                            {{ video.user.name }}
+                        </NuxtLink>
                     </span>
                 </button>
 
@@ -166,7 +130,7 @@ onMounted(() => {
             <div class="mt-2.5 flex">
                 <div
                     @click="displayPost(video)"
-                    class="video-wrapper relative min-h-[600px] max-h-[880px] w-[600px] flex items-center bg-black rounded-xl cursor-pointer"
+                    class="video-wrapper relative w-[600px] max-h-[730px] flex items-center bg-black rounded-xl cursor-pointer"
                 >
                     <video 
                         ref="videoplay"
@@ -176,7 +140,7 @@ onMounted(() => {
                         playsinline
                         class="rounded-xl object-cover mx-auto h-full w-full"
                     >
-                         <source :src="video.src">
+                         <source :src="video.video">
                     </video>
                     
                 </div>
@@ -184,9 +148,9 @@ onMounted(() => {
                     <div class="absolute bottom-0 pl-2">
                         <div class="pb-4 text-center">
                             <button :disabled="isLiking" @click="toggleLike(video)" class="rounded-full bg-gray-200 p-2 cursor-pointer disabled:bg-gray-300">
-                                <Icon name="mdi:heart" size="25" :color="video.is_liked ? '#F02C56' : '#161724'"/>
+                                <Icon name="mdi:heart" size="25" :color="video.liked ? '#F02C56' : '#161724'"/>
                             </button>
-                            <span class="text-xs text-gray-800 font-semibold">{{ video.users_like.length }}</span>
+                            <span class="text-xs text-gray-800 font-semibold">{{ video.likes.length }}</span>
                         </div>
 
                         <div class="pb-4 text-center">
@@ -196,14 +160,13 @@ onMounted(() => {
                             <span class="text-xs text-gray-800 font-semibold">{{ video.comments.length }}</span>
                         </div>
 
-                        <div class="text-center">
-                            <div class="rounded-full bg-gray-200 p-2 cursor-pointer">
+                        <div class="pb-4 text-center">
+                            <div @click="shareVideo(video)" class="rounded-full bg-gray-200 p-2 cursor-pointer">
                                 <Icon name="ri:share-forward-fill" size="25"/>
                             </div>
-                            <span class="text-xs text-gray-800 font-semibold">55</span>
+                            <span class="text-xs text-gray-800 font-semibold">0</span>
                         </div>
 
-                       
                         <div class="text-center mb-2">
                             <button class="rounded-full bg-gray-200 p-2 cursor-pointer" @click="toggleMute">
                                 <Icon :name="isMuted ? 'mdi:volume-off' : 'mdi:volume-high'" size="25"/>
@@ -211,7 +174,6 @@ onMounted(() => {
                             <span class="text-xs text-gray-800 font-semibold">{{ isMuted ? 'Unmute' : 'Mute' }}</span>
                         </div>
 
-                        
                         <div class="text-center">
                             <input 
                                 type="range" 
@@ -223,25 +185,47 @@ onMounted(() => {
                             />
                             <span class="text-xs text-gray-800 font-semibold">{{ volume }}%</span>
                         </div>
-                        
                     </div>
                 </div>
-                
             </div>
         </div>
     </div>
     <div>
         <div ref="loadMoreTrigger" class="h-10 "></div>
     </div>
+
+    <transition name="modal">
+        <div v-if="isModalVisible" class="modal fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50">
+            <div class="bg-white p-4 rounded shadow-lg">
+                <p>Video link copied to clipboard!</p>
+            </div>
+        </div>
+    </transition>
 </template>
+
+
 
 <style scoped>
     @media (max-width: 600px) {
         .video-wrapper {
             width: 100%;
             height: 500px;
-            
         }
-        
+    }
+    @media (min-width: 1200px) {
+        .video-wrapper {
+            min-height: 700px;
+        }
+    }
+
+    .modal-enter-active, .modal-leave-active {
+        transition: opacity 0.5s;
+    }
+    .modal-enter, .modal-leave-to {
+        opacity: 0;
+    }
+
+    .modal {
+        z-index: 1000;
     }
 </style>

@@ -4,8 +4,7 @@
         class="fixed bg-white z-30 flex items-center w-full border-b h-[61px]"
     >
         <div 
-            :class="route.fullPath === '/' ? 'max-w-[1260px]' : ''" 
-            class="flex items-center justify-between w-full px-6 mx-auto"
+            class="flex items-center justify-between w-full px-6 mx-auto max-w-[1260px]"
         >
             <div :class="route.fullPath === '/' ? 'w-[80%]' : 'lg:w-[20%] w-[70%]'">
                 <NuxtLink to="/">
@@ -33,7 +32,7 @@
                     <span class="px-2 font-medium text-[15px]">Upload</span>
                 </button>
 
-                <div v-if="!authStore.isAuth" class="flex items-center">
+                <div v-if="!authStore.user.status" class="flex items-center">
                     <button 
                         @click="$generalStore.isLoginOpen = true" 
                         class="flex items-center bg-[#F02C56] text-white border rounded-md px-3 py-[6px]"
@@ -51,7 +50,7 @@
                             @click="showMenu = !showMenu"
                         >
                             <img 
-                                class="rounded-full" 
+                                class="rounded-full border" 
                                 width="33" 
                                 :src="authStore.user.avatar_url"
                             >
@@ -63,7 +62,7 @@
                             class="absolute bg-white rounded-lg py-1.5 w-[200px] shadow-xl border top-[43px] -right-2"
                         >
                             <NuxtLink 
-                                :to="`/profile/${authStore.user.$id}`" 
+                                :to="`/profile/${authStore.user.id}`" 
                                 @click="showMenu = false"
                                 class="flex items-center justify-start py-3 px-2 hover:bg-gray-100 cursor-pointer"
                             >
@@ -88,16 +87,15 @@
 
 <script setup>
 const { $userStore, $generalStore } = useNuxtApp()
-import { useAuthStore, useIsLoadingStore } from '~~/stores/auth.store.ts'
+import { supabase } from '~~/services/supabase'
+import { useAuthStore, useIsLoadingStore } from '~~/stores/auth.store'
 import { useVideoStore } from '~~/stores/videos.store'
 
 const authStore = useAuthStore()
-const videoStore = useVideoStore()
 const route = useRoute()
 const router = useRouter()
 const isLoadingStore = useIsLoadingStore()
 let showMenu = ref(false)
-
 
 
 const isLoggedIn = () => {
@@ -110,9 +108,12 @@ const isLoggedIn = () => {
 
 const logout = async () => {
     isLoadingStore.set(true)
-    await account.deleteSession('current')
-    authStore.clear()
-    videoStore.videos.forEach(video => video.is_liked = false)
+    try {
+        await supabase.auth.signOut()
+        authStore.user.status = false
+    } catch (error) {
+        console.log(error);
+    }
     isLoadingStore.set(false)
 
 }

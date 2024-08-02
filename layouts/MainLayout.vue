@@ -1,8 +1,7 @@
 <template>
     <TopNav/>
     <div 
-        :class="route.fullPath === '/' ? 'max-w-[1240px]' : ''" 
-        class="wrapper flex justify-between mx-auto w-full"
+        class="wrapper max-w-[1240px] flex justify-between mx-auto w-full"
     >
         <div>
             <SideNavMain />

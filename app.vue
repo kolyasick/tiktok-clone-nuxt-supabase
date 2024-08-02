@@ -1,4 +1,5 @@
 <template>
+   
     <NuxtPage />
 
     <AuthOverlay v-if="isLoginOpen" />
@@ -7,10 +8,9 @@
 
 <script setup>
 import { storeToRefs } from 'pinia';
-const { $userStore, $generalStore } = useNuxtApp()
+const { $generalStore } = useNuxtApp()
 const { isLoginOpen, isEditProfileOpen } = storeToRefs($generalStore)
-import { DB } from '@/utils/appwrite.ts'
-import { COLLECTION_USERS, DB_ID } from '~~/app.constants';
+
 
 onMounted(async () => {
     $generalStore.bodySwitch(false) 
@@ -21,33 +21,53 @@ onMounted(async () => {
 watch(() => isLoginOpen.value, (val) => $generalStore.bodySwitch(val) )
 watch(() => isEditProfileOpen.value, (val) => $generalStore.bodySwitch(val) )
 
-import {useAuthStore, useIsLoadingStore} from '~/stores/auth.store.ts'
+import {useAuthStore, useIsLoadingStore} from '~/stores/auth.store'
 import { useVideoStore } from './stores/videos.store';
+import { supabase } from './services/supabase';
+import { getItemById, getItems } from './services/database';
 
 const authStore = useAuthStore()
 const isLoadingStore = useIsLoadingStore()
 const videoStore = useVideoStore()
 
-onMounted(async () => {
-   
 
+const getSession = async () => {
    try {
-     const user = await account.get()
-    
-     if (user) {
-        const response = await DB.getDocument(DB_ID, COLLECTION_USERS, user.$id)
-        
-        authStore.set(response)
-        authStore.user.status = true
-     } else {
-        authStore.user.status = false
-     }
-   } catch(error) {
-        console.log(error);
-   } finally {
-        isLoadingStore.set(false)
+      isLoadingStore.set(true)
+
+      supabase.auth.onAuthStateChange((_, session) => {
+      
+      if(session && session.user) {
+         authStore.user = session.user
+         authStore.user.status = true
+         getUser()
+      } else {
+         console.log('user not found');
+      }
+   })
+   } catch (error) {
+      throw error
    }
-   
+}
+const getUser = async () => {
+   try {
+      const response = await getItemById('users', authStore.user.id)
+      if (response && response.length > 0) {
+        authStore.user.name = response[0].name
+        authStore.user.bio = response[0].bio
+        authStore.user.avatar_url = response[0].avatar
+        authStore.user.videos = response[0].videos
+      } else {
+        console.warn('No user found with the specified id')
+      }
+   } catch (error) {
+      console.error('Error in getUser function:', error)
+   }
+}
+
+onMounted(async () => {
+   await getSession()
    await videoStore.getVideos()
 })
+
 </script>

@@ -32,18 +32,17 @@
             Log in
         </button>
     </div>
-    <span class="px-6 text-[12px] text-gray-600" v-if="errors">
+    <span class="px-6 text-[14px] text-red-600" v-if="errors">
         {{ errors }}
     </span>
 </template>
 
 <script setup>
-const { $userStore, $generalStore } = useNuxtApp()
-import {account} from '../utils/appwrite'
-import {useAuthStore, useIsLoadingStore} from '~/stores/auth.store.ts'
-import { DB } from '@/utils/appwrite.ts'
-import { COLLECTION_USERS, DB_ID } from '~~/app.constants';
-import { useVideoStore } from '~~/stores/videos.store';
+
+const {$generalStore } = useNuxtApp()
+import {useAuthStore, useIsLoadingStore} from '~/stores/auth.store'
+import { supabase } from '~~/services/supabase';
+import { getItemById } from '~~/services/database';
 
 let email = ref(null)
 let password = ref(null)
@@ -51,40 +50,42 @@ let errors = ref(null)
 
 const authStore = useAuthStore()
 const isLoadingStore = useIsLoadingStore()
-const videoStore = useVideoStore()
+
+const getUser = async () => {
+   try {
+      
+      const response = await getItemById('users', authStore.user.id)
+      if (response && response.length > 0) {
+        authStore.user.name = response[0].name
+        authStore.user.avatar_url = response[0].avatar
+        authStore.user.videos = response[0].videos
+      } else {
+        console.warn('No user found with the specified id')
+      }
+   } catch (error) {
+      console.error('Error in getUser function:', error)
+   }
+}
+
 const login = async () => {
     errors.value = null
+    isLoadingStore.set(true)
 
-    try {
-        await account.createEmailPasswordSession(email.value, password.value)
-        const response = await account.get()
+    const {data, error} = await supabase.auth.signInWithPassword({
+        email: email.value,
+        password: password.value
+    })
 
-        if (response) {
-        const checkUser = await DB.getDocument(DB_ID, COLLECTION_USERS, response.$id)
-        console.log(checkUser);
-
-        if(checkUser) {
-            authStore.set({
-                $id: response.$id,
-                name: checkUser.name,
-                status: true,
-                bio: checkUser.bio,
-                avatar_url: checkUser.avatar_url,
-                videos: checkUser.videos
-            })
-        }
-
-        isLoadingStore.set(true)
+    if (error) {
+        isLoadingStore.set(false)
+        errors.value = error.message
+    } else {
+        await getUser()
+        authStore.user.status = true
+        isLoadingStore.set(false)
         $generalStore.isLoginOpen = false
-        await videoStore.getVideos()
-        
-        email.value = ''
-        password.value = ''
-        }
-    } catch (error) {
-        console.log(error);
-        errors.value = error
     }
+
 }
 
 

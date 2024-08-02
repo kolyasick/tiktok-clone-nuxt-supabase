@@ -57,14 +57,16 @@
 <script setup>
 import { DB } from '@/utils/appwrite.ts'
 import { COLLECTION_USERS, DB_ID } from '~~/app.constants';
-const { $userStore, $generalStore } = useNuxtApp()
-import { useAuthStore, useIsLoadingStore } from '@/stores/auth.store.ts'
+const { $generalStore } = useNuxtApp()
+import { useAuthStore, useIsLoadingStore } from '@/stores/auth.store'
+import { supabase } from '~~/services/supabase';
 
 let name = ref(null)    
 let email = ref(null)
 let password = ref(null)
 let confirmPassword = ref(null)
 let errors = ref(null)
+
 const authStore = useAuthStore()
 const isLoadingStore = useIsLoadingStore()
 
@@ -94,43 +96,55 @@ const login = async () => {
     }
 }
 
-const createUser = async (user) => {
-    console.log('creating...', user);
+// const createUser = async (user) => {
+//     console.log('creating...', user);
+//     try {
+//         const response = await supabase.auth.signUp({
+//             email: user.email,
+//             password: user.password
+//         })
+//         console.log(response);
+//         // if (response) {
+//         //         authStore.set({
+//         //         email: user.email,
+//         //         name: user.name,
+//         //         status: user.status
+//         //     })
+//         // }
+//     } catch (error) {
+//         console.log(error);
+//     }
+// }
+
+const register = async () => {
+    errors.value = null;
+
+    if (password.value !== confirmPassword.value) {
+        errors.value = 'Пароли не совпадают';
+        return;
+    }
+
     try {
-        const response = await DB.createDocument(DB_ID, COLLECTION_USERS, user.$id, {
-            name: user.name,
-            bio: 'No bio yet'
-        })
-        if (response) {
-                authStore.set({
-                $id: response.$id,
-                name: response.name,
-                status: user.status,
-                bio: response.bio,
-                avatar_url: response.avatar_url,
-                videos: response.videos
-            })
+        const { data, error } = await supabase.auth.signUp({
+            email: email.value,
+            password: password.value
+        });
+
+        if (error) {
+            if (error.message.includes('Email rate limit exceeded')) {
+                errors.value = 'Превышен лимит попыток регистрации. Попробуйте позже.';
+            } else {
+                errors.value = error.message;
+            }
+        } else {
+            // Успешная регистрация, отправлено подтверждение на почту
+            successMessage.value = 'Регистрация прошла успешно. Проверьте свою почту для подтверждения аккаунта.';
         }
     } catch (error) {
         console.log(error);
+        errors.value = 'Произошла ошибка при регистрации. Попробуйте снова.';
     }
 }
 
-const register = async () => {
-    errors.value = null
-
-    if(password.value !== confirmPassword.value) {
-        errors.value = 'Passwords do not match'
-    }
-
-    try {
-        await account.create(ID.unique(), email.value, password.value, name.value)
-        await login();
-        $generalStore.isLoginOpen = false
-    } catch (error) {
-        console.log(error);
-        errors.value = error
-    }
-}
 
 </script>

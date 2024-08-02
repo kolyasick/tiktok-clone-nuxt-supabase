@@ -196,11 +196,11 @@
 
 <script setup>
 import UploadLayout from '~/layouts/UploadLayout.vue';
-import { storage } from '~~/utils/appwrite';
-import { DB } from '@/utils/appwrite.ts'
-import { COLLECTION_VIDEOS, DB_ID } from '~~/app.constants';
+import { createItem, updateItem, uploadVideo } from '~~/services/database';
+
 import { useAuthStore } from '~~/stores/auth.store';
 import { useVideoStore } from '~~/stores/videos.store';
+
 
 const caption = ref('')
 const fileDisplay = ref('')
@@ -222,10 +222,21 @@ const formatDate = () => {
 
 const onChange = async (event) => {
     fileToUpload.value = event.target.files[0]
+
+    if(fileToUpload.value.size > 50 * 1024 * 1024) {
+        errors.value = {
+            video: 'File size should be less than 50MB'
+        }
+        return
+    }
     const file = event.target.files[0]
     fileName.value = file.name
-    
     fileDisplay.value = URL.createObjectURL(file)
+}
+
+const clearVideo = () => {
+    fileDisplay.value = null
+    fileName.value = null
 }
 
 const createPost = async () => {
@@ -246,21 +257,39 @@ const createPost = async () => {
 
     try {
         loading.value = true
-        const file = await storage.createFile("666447090024f1d6626f", ID.unique(), fileToUpload.value)
-        const response = await DB.createDocument(DB_ID, COLLECTION_VIDEOS, ID.unique(), {
-            title: caption.value,
-            description: formatDate,
-            src: `https://cloud.appwrite.io/v1/storage/buckets/666447090024f1d6626f/files/${file.$id}/view?project=6664459e002592362cf0`,
-            user: authStore.user.$id
-            
-        })
+        const response = await uploadVideo(fileToUpload.value)
+        const videoUrl = `https://insvrfswdpcvqeihnbup.supabase.co/storage/v1/object/public/${response.fullPath}`
 
+        let videoToUpload = {
+            title: caption.value,
+            descr: formatDate(),
+            video: videoUrl,
+            likes: [],
+            comments: [],
+            user_id: authStore.user.id,
+            user: {
+                name: authStore.user.name,
+                avatar: authStore.user.avatar_url
+            }
+        }
+
+        await createItem('videos', {
+            ...videoToUpload
+        })
         fileDisplay.value = null
         caption.value = ''
         fileName.value = null
 
         if(response) {
             succes.value = 'Post created successfully'
+
+            authStore.user.videos.push(videoToUpload)
+            await updateItem('users', authStore.user.id, {
+                videos: [
+                    ...authStore.user.videos
+                ]
+            })
+
             await videoStore.getVideos()
         } else {
             errors.value = 'Something went wrong'

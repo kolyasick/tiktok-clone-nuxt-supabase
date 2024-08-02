@@ -172,16 +172,19 @@
 import { Cropper, CircleStencil } from 'vue-advanced-cropper'
 import 'vue-advanced-cropper/dist/style.css';
 
-import { storeToRefs } from 'pinia';
-const { $userStore, $generalStore, $profileStore } = useNuxtApp()
-const { name, bio, image } = storeToRefs($userStore)
+import { getItemById, updateItem, uploadImg } from '~~/services/database';
+const {  $generalStore,} = useNuxtApp()
+import { useAuthStore } from '~~/stores/auth.store';
+import { supabase } from '~~/services/supabase';
 
 const route = useRoute()
 
+const authStore = useAuthStore();
+
 onMounted(() => {
-    userName.value = name.value
-    userBio.value = bio.value
-    userImage.value = image.value
+    userName.value = authStore.user.name
+    userBio.value = authStore.user.bio
+    userImage.value = authStore.user.avatar_url
 })
 
 let file = ref(null)
@@ -198,23 +201,12 @@ const getUploadedImage = (e) => {
 }
 const cropAndUpdateImage = async () => {
     const { coordinates } = cropper.value.getResult()
-    let data = new FormData();
-
-    data.append('image', file.value || '')
-    data.append('height', coordinates.height || '')
-    data.append('width', coordinates.width || '')
-    data.append('left', coordinates.left || '')
-    data.append('top', coordinates.top || '')   
 
     try {
-        await $userStore.updateUserImage(data)
-        await $userStore.getUser()
-        await $profileStore.getProfile(route.params.id)
+        const res = await uploadImg(file.value)
+        await getItemById('users', authStore.user.id)
 
-        $generalStore.updateSideMenuImage($generalStore.suggested, $userStore)
-        $generalStore.updateSideMenuImage($generalStore.following, $userStore)
-
-        userImage.value = image.value
+        userImage.value = 'https://insvrfswdpcvqeihnbup.supabase.co/storage/v1/object/public/' + res.fullPath
         uploadedImage.value = null
     } catch (error) {
         console.log(error)
@@ -223,12 +215,23 @@ const cropAndUpdateImage = async () => {
 
 const updateUserInfo = async () => {
     try {
-        await $userStore.updateUser(userName.value, userBio.value)
-        await $userStore.getUser()
-        await $profileStore.getProfile(route.params.id)
+        await updateItem('users', authStore.user.id, 
+        { 
+            name: userName.value, 
+            bio: userBio.value ,
+            avatar: userImage.value
+        })
+        await supabase.from('videos').update({user: {
+            id: authStore.user.id,
+            name: userName.value,
+            avatar: userImage.value
+        }}).eq('user_id', authStore.user.id)
 
-        userName.value = name.value
-        userBio.value = bio.value
+        const res = await getItemById('users', route.params.id)
+
+        authStore.user.name = res[0].name
+        authStore.user.bio = res[0].bio
+        authStore.user.avatar_url = res[0].avatar
 
         setTimeout(() => {
             $generalStore.isEditProfileOpen = false
@@ -239,7 +242,7 @@ const updateUserInfo = async () => {
 }
 
 watch(() => userName.value, () => {
-    if (!userName.value || userName.value === name.value) {
+    if (!userName.value || userName.value === authStore.user.name) {
         isUpdated.value = false
     } else {
         isUpdated.value = true

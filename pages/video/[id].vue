@@ -3,6 +3,7 @@ import {COLLECTION_VIDEOS, DB_ID, COLLECTION_COMMENTS} from "~/app.constants";
 import { DB } from "~~/utils/appwrite";
 import dayjs from "dayjs";
 import {useAuthStore} from "~/stores/auth.store";
+import { getItemById, updateItem } from "~~/services/database";
 
 const { $generalStore, $userStore } = useNuxtApp()
 
@@ -22,12 +23,13 @@ let comments = ref([])
 const renderComments = async () => {
   $generalStore.selectedPost = null;
   try {
-    const videoData = await DB.getDocument(DB_ID, COLLECTION_VIDEOS, route.params.id);
-    $generalStore.selectedPost = videoData;
-    comments.value = videoData.comments
-
+    const videoData = await getItemById('videos', route.params.id);
+    $generalStore.selectedPost = videoData[0];
+    
+    comments.value = videoData[0].comments
+    
     if (videoElement.value) {
-      videoElement.value.src = videoData.src;
+      videoElement.value.src = videoData[0].video;
     }
   } catch (error) {
     if (error && error.response.status === 400) {
@@ -37,17 +39,22 @@ const renderComments = async () => {
 }
 
 onMounted(async () => {
-  await renderComments();
+    await renderComments();
+    if (videoElement.value) {
+        videoElement.value.play().catch(error => {
+            console.log('Auto-play was prevented:', error);
+        });
+    }
 });
 
-// Следите за изменениями в videoElement и добавляйте обработчик события, когда он инициализирован
+
 watch(videoElement, (newVal) => {
   if (newVal) {
     newVal.addEventListener('loadeddata', (e) => {
       if (e.target) {
         setTimeout(() => {
           isLoaded.value = true;
-          newVal.play(); // Воспроизвести видео
+          newVal.play();
         }, 500);
       }
     });
@@ -62,144 +69,65 @@ const toggleVideo = () => {
     }
 }
 
-
 const formattedDate = computed(() => {
-  if ($generalStore.selectedPost && $generalStore.selectedPost.$createdAt) {
-    return dayjs($generalStore.selectedPost.$createdAt).format('YYYY-MM-DD HH:mm');
+  if ($generalStore.selectedPost && $generalStore.selectedPost.created_at) {
+    return dayjs($generalStore.selectedPost.created_at).format('YYYY-MM-DD HH:mm');
   }
   return '';
 });
-//
-// onBeforeUnmount(() => {
-//     video.value.pause()
-//     video.value.currentTime = 0
-//     video.value.src = ''
-// })
-//
-// watch(() => isLoaded.value, () => {
-//     if (isLoaded.value) {
-//         setTimeout(() => video.value.play(), 500)
-//     }
-// })
-//
-// const loopThroughPostsDown = () => {
-//     setTimeout(() => {
-//         let idArrayReversed = $generalStore.ids.reverse()
-//         let isBreak = false
-//
-//         for (let i = 0; i < idArrayReversed.length; i++) {
-//             const id = idArrayReversed[i];
-//             if (id < route.params.id) {
-//                 router.push(`/video/${id}`)
-//                 isBreak = true
-//                 return
-//             }
-//         }
-//
-//         if (!isBreak) {
-//             router.push(`/video/${idArrayReversed[0]}`)
-//         }
-//     }, 300)
-// }
-//
-//
-// const loopThroughPostsUp = () => {
-//     setTimeout(() => {
-//         let isBreak = false
-//
-//         for (let i = 0; i < $generalStore.ids.length; i++) {
-//             const id = $generalStore.ids[i];
-//             if (id > route.params.id) {
-//                 router.push(`/video/${id}`)
-//                 isBreak = true
-//                 return
-//             }
-//         }
-//
-//         if (!isBreak) {
-//             router.push(`/video/${$generalStore.ids[0]}`)
-//         }
-//     }, 300)
-// }
-//
-// const isLiked = computed(() => {
-//     let res = $generalStore.selectedPost.likes.find(like => like.user_id === $userStore.id)
-//     if (res) {
-//         return true
-//     }
-//     return false
-// })
-//
-// const likePost = async () => {
-//     try {
-//         await $userStore.likePost($generalStore.selectedPost, true)
-//     } catch (error) {
-//         console.log(error)
-//     }
-// }
-//
-// const unlikePost = async () => {
-//     try {
-//         await $userStore.unlikePost($generalStore.selectedPost, true)
-//     } catch (error) {
-//         console.log(error)
-//     }
-// }
-//
-// const deletePost = async () => {
-//     let res = confirm('Are you sure you want to delete this video?')
-//     try {
-//         if (res) {
-//             await $userStore.deletePost($generalStore.selectedPost)
-//             await $profileStore.getProfile($userStore.id)
-//             router.push(`/profile/${$userStore.id}`)
-//         }
-//     } catch (error) {
-//         console.log(error)
-//     }
-// }
-//
-const addComment = async () => {
-  comments.value.push({
-    video: $generalStore.selectedPost.$id,
-    text: comment.value,
-    user: {
-      $id: authStore.user.$id,
-      name: authStore.user.name,
-      avatar_url: authStore.user.avatar_url
-    }
-  })
-    try {
-        await DB.createDocument(DB_ID, COLLECTION_COMMENTS, ID.unique(), {
-          video: $generalStore.selectedPost.$id,
-          text: comment.value,
-          user: authStore.user.$id
-        })
-        // await renderComments()
-        comment.value = null
-        document.getElementById('Comments').scroll({ top:0, behavior:'smooth' });
-    } catch (error) {
-        console.log(error)
-    }
-}
 
-// const deleteComment = async (video, commentId) => {
-//     let res = confirm('Are you sure you want to delete this comment?')
-//     try {
-//         if (res) {
-//             await $userStore.deleteComment(video, commentId)
-//         }
-//     } catch (error) {
-//         console.log(error)
-//     }
-// }
+const toggleLike = async (video) => {
+    if (!authStore.user.status) {
+        $generalStore.isLoginOpen = true;
+        return;
+    }
+
+    const userId = authStore.user.id;
+    const hasLiked = video.likes.includes(userId);
+    let updatedLikes;
+
+    if (!hasLiked) {
+        video.liked = true
+        updatedLikes = [...video.likes, userId];
+    } else {
+        video.liked = false
+        updatedLikes = video.likes.filter(like => like !== userId);
+    }
+
+    try {
+        await updateItem('videos', video.id, { likes: updatedLikes });
+        video.likes = updatedLikes; 
+    } catch (error) {
+        console.log('Error updating video likes:', error);
+    }
+};
+
 const isLiked = computed(() => {
-    let res = $generalStore.selectedPost.users_like.find(like => like.$id === authStore.user.$id)
+    let res = $generalStore.selectedPost.likes.find(like => like === authStore.user.id)
     if (res) {
         return true
     }
     return false
 })
+
+const addComment = async () => {
+    if (!authStore.user.status) {
+        $generalStore.isLoginOpen = true;
+        return;
+    } else if (!comment.value) {
+        return
+    }
+    await updateItem('videos', route.params.id, {
+        comments: [...$generalStore.selectedPost.comments, {
+            user_id: authStore.user.id,
+            user_name: authStore.user.name,
+            user_avatar: authStore.user.avatar_url,
+            text: comment.value
+        }]
+    })
+    comment.value = null;
+    await renderComments();
+}
 
 </script>
 
@@ -244,19 +172,18 @@ const isLiked = computed(() => {
       >
         <video
         @click="toggleVideo()"
-          v-if="$generalStore.selectedPost"
+            autoplay
+             muted
           ref="videoElement"
           loop
-          muted
           class="h-screen mx-auto w-full"
-          :src="$generalStore.selectedPost.src"
         />
       </div>
     </div>
 
     <div
       id="InfoSection"
-      v-if="$generalStore.selectedPost"
+      v-if="$generalStore.selectedPost && $generalStore.selectedPost.user"
       class="lg:max-w-[550px] relative w-full h-full bg-white"
     >
 
@@ -264,16 +191,16 @@ const isLiked = computed(() => {
 
             <div class="flex items-center justify-between px-8">
                 <div class="flex items-center">
-                    <NuxtLink :href="`/profile/${$generalStore.selectedPost.user.id}`">
+                    <NuxtLink :href="`/profile/${$generalStore.selectedPost.user_id}`">
                         <img
                             class="rounded-full lg:mx-0 mx-auto"
                             width="40"
-                            :src="$generalStore.selectedPost.user.avatar_url"
+                            :src="$generalStore.selectedPost.user.avatar"
                         >
                     </NuxtLink>
                     <div class="ml-3 pt-0.5">
                         <div class="text-[17px] font-semibold">
-                            {{ $generalStore.allLowerCaseNoCaps($generalStore.selectedPost.user.name) }}
+                            {{ $generalStore.selectedPost.user.name }}
                         </div>
                         <div class="text-[13px] -mt-5 font-light">
                             {{ $generalStore.selectedPost.user.name }}
@@ -283,26 +210,26 @@ const isLiked = computed(() => {
                     </div>
                 </div>
 
-                <Icon
-                    v-if="$userStore.id === $generalStore.selectedPost.user.id"
+                <!-- <Icon
+                    v-if="authStore.user.id === $generalStore.selectedPost.user_id"
                     @click="deletePost()"
                     class="cursor-pointer"
                     name="material-symbols:delete-outline-sharp"
                     size="25"
-                />
+                /> -->
             </div>
 
             <div class="px-8 mt-4 text-sm">{{ $generalStore.selectedPost.title }}</div>
 
             <div class="px-8 mt-4 text-sm font-bold">
                 <Icon name="mdi:music" size="17"/>
-                original sound - {{ $generalStore.allLowerCaseNoCaps($generalStore.selectedPost.user.name) }}
+                original sound - {{ $generalStore.selectedPost.user.name }}
             </div>
 
             <div class="flex items-center px-8 mt-8">
                 <div class="pb-4 text-center flex items-center">
                     <button
-                        @click="isLiked ? unlikePost() : likePost()"
+                        @click="toggleLike($generalStore.selectedPost)"
                         class="rounded-full bg-gray-200 p-2 cursor-pointer"
                     >
                         <Icon
@@ -312,7 +239,7 @@ const isLiked = computed(() => {
                         />
                     </button>
                     <span class="text-xs pl-2 pr-4 text-gray-800 font-semibold">
-                        {{ $generalStore.selectedPost.users_like.length }}
+                        {{ $generalStore.selectedPost.likes.length }}
                     </span>
                 </div>
 
@@ -332,7 +259,7 @@ const isLiked = computed(() => {
                 <div class="pt-2"/>
 
                 <div
-                    v-if="($generalStore.selectedPost.comments.length < 1)"
+                    v-if="comments.length === 0"
                     class="text-center mt-6 text-xl text-gray-500"
                 >
                     No comments...
@@ -345,23 +272,24 @@ const isLiked = computed(() => {
                     class="flex items-center justify-between px-8 mt-4"
                 >
                     <div class="flex items-center relative w-full">
-                        <NuxtLink :to="`/profile/${comment.user.$id}`">
+                        <NuxtLink :to="`/profile/${comment.user_id}`">
                             <img
                                 class="absolute top-0 rounded-full lg:mx-0 mx-auto"
                                 width="40"
-                                :src="comment.user.avatar_url"
+                                :src="comment.user_avatar"
                             >
                         </NuxtLink>
                         <div class="ml-14 pt-0.5 w-full">
-                            <div class="text-[16px] font-semibold flex items-center justify-between">
-                                {{ comment.user.name }}
-                                <Icon
-                                    v-if="authStore.user.$id === comment.user.$id"
-                                    @click="deleteComment(comment.$id)"
+                            <div class="text-[17px] font-semibold flex items-center gap-1">
+                                {{ comment.user_name === authStore.user.name ? 'you' : comment.user_name }}
+                                <p class="text-[10px] font-normal">{{ comment.user_name === $generalStore.selectedPost.user.name && comment.user_name !== authStore.user.name ? '~author' : '' }}</p>
+                                <!-- <Icon
+                                    v-if="authStore.user.id === comment.user_id"
+                                    @click="deleteComment(comment.id)"
                                     class="cursor-pointer"
                                     name="material-symbols:delete-outline-sharp"
                                     size="25"
-                                />
+                                /> -->
                             </div>
                             <div class="text-[13px] font-light">
                                 {{ comment.text }}
@@ -395,11 +323,18 @@ const isLiked = computed(() => {
                 <button
                     :disabled="!comment"
                     @click="addComment()"
-                    :class="comment ? 'text-[#F02C56] cursor-pointer' : 'text-gray-400'"
-                    class="font-semibold text-sm ml-5 pr-1"
+                    :class="comment ? 'text-[#F02C56] cursor-pointer hover:bg-[#ffeef2] hover:text-[#F02C56] border-[#F02C56]' : 'text-gray-400'"
+                    class="font-semibold text-sm ml-5 border  rounded-lg px-3 py-1.5 "
                 >
                     Post
                 </button>
+            </div>
+            <div v-else>
+                <div class="absolute flex items-center justify-center bottom-0 bg-white h-[85px] lg:max-w-[550px] w-full py-5 px-8 border-t-2">
+                    <p>
+                        <span @click="$generalStore.isLoginOpen = true" class="cursor-pointer text-[#F02C56]">Login </span>to comment
+                    </p>
+                </div>
             </div>
         </div>
     </div>

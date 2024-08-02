@@ -17,7 +17,7 @@
                 muted
                 loop
                 class="aspect-[3/4] object-cover rounded-md" 
-                :src="video.src"
+                :src="video.video"
             />
         </div>
         <div class="px-1">
