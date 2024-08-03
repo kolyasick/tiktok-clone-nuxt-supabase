@@ -38,11 +38,9 @@ const renderComments = async () => {
 
 onMounted(async () => {
     await renderComments();
-    if (videoElement.value) {
-        videoElement.value.play().catch(error => {
-            console.log('Auto-play was prevented:', error);
-        });
-    }
+    setTimeout(() => {
+        videoElement.value.muted = false;
+    }, 500);
 });
 
 
@@ -108,10 +106,10 @@ onBeforeUnmount(async () => {
     
     if($generalStore.selectedPost.liked) {
         videoStore.videos.splice(index, 1)
-        videoStore.videos.push({...$generalStore.selectedPost, liked: true})
+        videoStore.videos.unshift({...$generalStore.selectedPost, liked: true})
     } else {
         videoStore.videos.splice(index, 1)
-        videoStore.videos.push({...$generalStore.selectedPost, liked: false})
+        videoStore.videos.unshift({...$generalStore.selectedPost, liked: false})
     }
     
 })
@@ -186,8 +184,8 @@ const addComment = async () => {
       >
         <video
         @click="toggleVideo()"
-            autoplay
-             muted
+        autoplay
+            muted
           ref="videoElement"
           loop
           class="h-screen mx-auto w-full"

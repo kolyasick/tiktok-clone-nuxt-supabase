@@ -116,6 +116,7 @@ onMounted(async () => {
     await loadProfile();
 });
 
+
 watch(() => route.params.id, async () => {
     await loadProfile();
 });
@@ -123,6 +124,7 @@ watch(() => route.params.id, async () => {
 watch(() => authStore.user, async () => {
     await loadProfile();
 }, { deep: true });
+
 
 
 </script>
