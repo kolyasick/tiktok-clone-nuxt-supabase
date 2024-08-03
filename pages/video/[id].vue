@@ -38,12 +38,11 @@ const renderComments = async () => {
 
 onMounted(async () => {
     await renderComments();
-    if (videoElement.value) {
-        videoElement.value.play().catch(error => {
-            console.log('Auto-play was prevented:', error);
-        });
-    }
+    setTimeout(() => {
+        videoElement.value.muted = false;
+    }, 500);
 });
+
 
 
 watch(videoElement, (newVal) => {
