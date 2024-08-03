@@ -1,17 +1,15 @@
 <script setup>
-import {COLLECTION_VIDEOS, DB_ID, COLLECTION_COMMENTS} from "~/app.constants";
-import { DB } from "~~/utils/appwrite";
 import dayjs from "dayjs";
 import {useAuthStore} from "~/stores/auth.store";
 import { getItemById, updateItem } from "~~/services/database";
-
+import { useVideoStore } from "~~/stores/videos.store";
 const { $generalStore, $userStore } = useNuxtApp()
 
 const route = useRoute()
 const router = useRouter()
 
 const authStore = useAuthStore();
-
+const videoStore = useVideoStore();
 
 let videoElement = ref(null);
 let isLoaded = ref(false);
@@ -24,7 +22,7 @@ const renderComments = async () => {
   $generalStore.selectedPost = null;
   try {
     const videoData = await getItemById('videos', route.params.id);
-    $generalStore.selectedPost = videoData[0];
+    $generalStore.selectedPost = {...videoData[0], liked: videoData[0].likes.includes(authStore.user.id)}
     
     comments.value = videoData[0].comments
     
@@ -77,6 +75,7 @@ const formattedDate = computed(() => {
 });
 
 const toggleLike = async (video) => {
+    
     if (!authStore.user.status) {
         $generalStore.isLoginOpen = true;
         return;
@@ -89,6 +88,8 @@ const toggleLike = async (video) => {
     if (!hasLiked) {
         video.liked = true
         updatedLikes = [...video.likes, userId];
+        
+        
     } else {
         video.liked = false
         updatedLikes = video.likes.filter(like => like !== userId);
@@ -101,6 +102,19 @@ const toggleLike = async (video) => {
         console.log('Error updating video likes:', error);
     }
 };
+
+onBeforeUnmount(async () => {
+    const index = videoStore.videos.findIndex(video => video.id === $generalStore.selectedPost.id);
+    
+    if($generalStore.selectedPost.liked) {
+        videoStore.videos.splice(index, 1)
+        videoStore.videos.push({...$generalStore.selectedPost, liked: true})
+    } else {
+        videoStore.videos.splice(index, 1)
+        videoStore.videos.push({...$generalStore.selectedPost, liked: false})
+    }
+    
+})
 
 const isLiked = computed(() => {
     let res = $generalStore.selectedPost.likes.find(like => like === authStore.user.id)

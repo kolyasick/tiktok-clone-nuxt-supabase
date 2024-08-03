@@ -3,7 +3,7 @@
         <div class="pt-[80px] w-[calc(100%-20px)] max-w-[890px] overflow-hidden" ref="scrollContainer">
             <div v-if="videoStore.videos.length">
                 <PostMain 
-                    v-for="video in videos" 
+                    v-for="video in videoStore.videos" 
                     :key="video.id" 
                     :video="video" 
                 />
@@ -25,14 +25,7 @@ import { useVideoStore } from '~~/stores/videos.store'
 const authStore = useAuthStore()
 const videoStore = useVideoStore()
 const scrollContainer = ref(null)
-const videos = ref([])
 
-watchEffect(() => {
-    videos.value = videoStore.videos.map((video) => ({
-        ...video,
-        liked: video.likes.includes(authStore.user.id),
-    }))
-})
 
 // const loadMore = () => {
 //     videoStore.getVideos()

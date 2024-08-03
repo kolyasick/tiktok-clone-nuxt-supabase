@@ -38,7 +38,7 @@ const getSession = async () => {
       supabase.auth.onAuthStateChange((_, session) => {
       
       if(session && session.user) {
-         authStore.user = session.user
+         authStore.set(session.user)
          authStore.user.status = true
          getUser()
       } else {

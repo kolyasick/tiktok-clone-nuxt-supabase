@@ -55,8 +55,6 @@
 </template>
 
 <script setup>
-import { DB } from '@/utils/appwrite.ts'
-import { COLLECTION_USERS, DB_ID } from '~~/app.constants';
 const { $generalStore } = useNuxtApp()
 import { useAuthStore, useIsLoadingStore } from '@/stores/auth.store'
 import { supabase } from '~~/services/supabase';

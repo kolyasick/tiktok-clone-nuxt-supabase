@@ -1,7 +1,0 @@
-export const APP_WRITE_ID = '6664459e002592362cf0'
-export const DB_ID = 'tiktok-clone'
-export const COLLECTION_VIDEOS = 'videos'
-export const COLLECTION_USERS = 'users'
-export const COLLECTION_FAVORITES = 'favorites'
-export const COLLECTION_COMMENTS = '6693ed970032a3725769'
-export const STORAGE_ID = 'videos'

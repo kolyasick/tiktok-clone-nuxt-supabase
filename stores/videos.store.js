@@ -12,7 +12,11 @@ export const useVideoStore = defineStore('videos', {
         async getVideos() {
             try {
                 const {data} = await supabase.from('videos').select('*')
-                this.videos = data
+                this.videos = data.map((video) => ({
+                    ...video,
+                    liked: video.likes.includes(this.user.id),
+                }))
+                
             } catch (error) {
                 console.error("Error fetching videos:", error);
             }

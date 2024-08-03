@@ -197,7 +197,7 @@
 <script setup>
 import UploadLayout from '~/layouts/UploadLayout.vue';
 import { createItem, updateItem, uploadVideo } from '~~/services/database';
-
+const { $generalStore } = useNuxtApp()
 import { useAuthStore } from '~~/stores/auth.store';
 import { useVideoStore } from '~~/stores/videos.store';
 
@@ -221,6 +221,11 @@ const formatDate = () => {
 };
 
 const onChange = async (event) => {
+    if (!authStore.user.status) {
+        $generalStore.isLoginOpen = true;
+        return;
+    }
+
     fileToUpload.value = event.target.files[0]
 
     if(fileToUpload.value.size > 50 * 1024 * 1024) {
@@ -240,6 +245,11 @@ const clearVideo = () => {
 }
 
 const createPost = async () => {
+    if (!authStore.user.status) {
+        $generalStore.isLoginOpen = true;
+        return;
+    }
+
     errors.value = null
     succes.value = null
     if (!fileToUpload.value) {
