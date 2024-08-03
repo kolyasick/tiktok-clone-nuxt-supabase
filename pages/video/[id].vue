@@ -44,6 +44,7 @@ onMounted(async () => {
 });
 
 
+
 watch(videoElement, (newVal) => {
   if (newVal) {
     newVal.addEventListener('loadeddata', (e) => {
