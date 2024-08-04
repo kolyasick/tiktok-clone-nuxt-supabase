@@ -43,6 +43,7 @@ const {$generalStore } = useNuxtApp()
 import {useAuthStore, useIsLoadingStore} from '~/stores/auth.store'
 import { supabase } from '~~/services/supabase';
 import { getItemById } from '~~/services/database';
+import { useVideoStore } from '~~/stores/videos.store';
 
 let email = ref(null)
 let password = ref(null)
@@ -50,6 +51,7 @@ let errors = ref(null)
 
 const authStore = useAuthStore()
 const isLoadingStore = useIsLoadingStore()
+const videoStore = useVideoStore()
 
 const getUser = async () => {
    try {
@@ -80,6 +82,7 @@ const login = async () => {
         isLoadingStore.set(false)
         errors.value = error.message
     } else {
+        await videoStore.getVideos()
         await getUser()
         authStore.user.status = true
         isLoadingStore.set(false)

@@ -56,10 +56,12 @@
 
 <script setup>
 const { $generalStore } = useNuxtApp()
+import { useVideoStore } from '~~/stores/videos.store';
 import { useAuthStore, useIsLoadingStore } from '@/stores/auth.store'
 import { createItem, getItemById } from '~~/services/database';
 import { supabase } from '~~/services/supabase';
 
+const videoStore = useVideoStore()
 let name = ref(null)    
 let email = ref(null)
 let password = ref(null)
@@ -117,6 +119,7 @@ const register = async () => {
             })
             successMessage.value = 'Registration successful';
             await getUser()
+            await videoStore.getVideos()
             $generalStore.isLoginOpen = false
         }
     } catch (error) {
