@@ -117,7 +117,7 @@ const register = async () => {
             })
             successMessage.value = 'Registration successful';
             await getUser()
-            $generalStore.isRegisterOpen = false
+            $generalStore.isLoginOpen = false
         }
     } catch (error) {
         console.log(error);
