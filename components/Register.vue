@@ -49,14 +49,15 @@
             Sign up
         </button>
     </div>
-    <span class="px-6 text-[12px] text-gray-600" v-if="errors">
-        {{ errors }}
+    <span class="px-6 text-[12px] text-gray-600" v-if="errors || successMessage">
+        {{ errors || successMessage }}
     </span>
 </template>
 
 <script setup>
 const { $generalStore } = useNuxtApp()
 import { useAuthStore, useIsLoadingStore } from '@/stores/auth.store'
+import { createItem, getItemById } from '~~/services/database';
 import { supabase } from '~~/services/supabase';
 
 let name = ref(null)    
@@ -64,55 +65,26 @@ let email = ref(null)
 let password = ref(null)
 let confirmPassword = ref(null)
 let errors = ref(null)
+let successMessage = ref(null)
 
 const authStore = useAuthStore()
 const isLoadingStore = useIsLoadingStore()
 
-const login = async () => {
-    errors.value = null
-
-    try {
-        await account.createEmailPasswordSession(email.value, password.value)
-        const response = await account.get()
-
-        if (response) {
-            await createUser(response)
-            
-            isLoadingStore.set(true)
-            authStore.set({
-                email: response.email,
-                name: response.name,
-                status: response.status
-            })
-            email.value = ''
-            password.value = ''
-            $generalStore.isLoginOpen = false
-        }
-    } catch (error) {
-        console.log(error);
-        errors.value = error
-    }
+const getUser = async () => {
+   try {
+      
+      const response = await getItemById('users', authStore.user.id)
+      if (response && response.length > 0) {
+        authStore.user.name = response[0].name
+        authStore.user.avatar_url = response[0].avatar
+        authStore.user.videos = response[0].videos
+      } else {
+        console.warn('No user found with the specified id')
+      }
+   } catch (error) {
+      console.error('Error in getUser function:', error)
+   }
 }
-
-// const createUser = async (user) => {
-//     console.log('creating...', user);
-//     try {
-//         const response = await supabase.auth.signUp({
-//             email: user.email,
-//             password: user.password
-//         })
-//         console.log(response);
-//         // if (response) {
-//         //         authStore.set({
-//         //         email: user.email,
-//         //         name: user.name,
-//         //         status: user.status
-//         //     })
-//         // }
-//     } catch (error) {
-//         console.log(error);
-//     }
-// }
 
 const register = async () => {
     errors.value = null;
@@ -135,8 +107,17 @@ const register = async () => {
                 errors.value = error.message;
             }
         } else {
-            // Успешная регистрация, отправлено подтверждение на почту
-            successMessage.value = 'Регистрация прошла успешно. Проверьте свою почту для подтверждения аккаунта.';
+            await createItem('users', {
+                id: data.user.id,
+                name: name.value,
+                email: data.user.email,
+                avatar: 'https://insvrfswdpcvqeihnbup.supabase.co/storage/v1/object/public/video-storage/avatars/podv.jpg0.508262450967655',
+                videos: [],
+                bio: 'no bio yet'
+            })
+            successMessage.value = 'Registration successful';
+            await getUser()
+            $generalStore.isRegisterOpen = false
         }
     } catch (error) {
         console.log(error);
