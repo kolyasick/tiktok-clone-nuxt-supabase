@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
 			id,
 		},
 		include: {
-			Videos: true,
+			videos: true,
 		},
 	})
 	if (!user) {
