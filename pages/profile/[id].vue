@@ -3,7 +3,7 @@
 		<div
 			class="pt-[90px] 2xl:pl-[185px] lg:pl-[160px] lg:pr-0 pr-2 w-[calc(100%-90px)] max-w-[1800px] 2xl:mx-auto">
 			<div class="flex w-full">
-				<NuxtImg class="rounded-full max-w-[150px]" :src="user?.avatar" />
+				<img class="rounded-full max-w-[150px]" :src="user?.avatar" />
 				<div class="ml-5 w-full">
 					<div class="text-[30px] font-bold truncate">
 						{{ user?.name }}
