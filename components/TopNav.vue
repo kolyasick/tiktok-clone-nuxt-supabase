@@ -21,7 +21,8 @@ const isLoggedIn = () => {
 				<NuxtLink to="/">
 					<NuxtImg
 						width="155"
-						src="https://cnftqjluuyftofvirwbb.supabase.co/storage/v1/object/public/uploads/avatars/logo.svg" />
+						src="/logo.svg">
+					</NuxtImg>
 				</NuxtLink>
 			</div>
 
