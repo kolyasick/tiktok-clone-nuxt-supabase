@@ -106,12 +106,12 @@ export const useAuthStore = defineStore("auth", {
 			}
 		},
 		async getUser() {
-			const user = useSupabaseUser()
+			const supabase = useSupabaseClient()
 
-			if (!user.value) return
+			const { data: { user } } = await supabase.auth.getUser()
 
 			try {
-				const { data } = await useFetch<IUser>(`/api/get-user/${user.value?.id}`)
+				const { data } = await useFetch<IUser>(`/api/get-user/${user?.id}`)
 				this.set(true, data.value)
 			} catch (error) {
 				throw error
