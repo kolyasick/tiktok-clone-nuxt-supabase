@@ -1,8 +1,6 @@
 <script setup lang="ts">
 const { $generalStore, $authStore } = useNuxtApp()
 
-
-
 const route = useRoute()
 const router = useRouter()
 
@@ -21,14 +19,16 @@ const isLoggedIn = () => {
 		<div class="flex items-center justify-between w-full px-2 mx-auto max-w-[1260px]">
 			<div :class="route.fullPath === '/' ? 'w-[80%]' : 'lg:w-[20%] w-[70%]'">
 				<NuxtLink to="/">
-					<NuxtImg width="155" src="/logo.svg" />
+					<NuxtImg
+						width="155"
+						src="https://cnftqjluuyftofvirwbb.supabase.co/storage/v1/object/public/uploads/avatars/logo.svg" />
 				</NuxtLink>
 			</div>
 
 			<div class="flex items-center justify-end gap-3 min-w-[275px] max-w-[320px] w-full">
 				<button
 					@click="isLoggedIn()"
-					class="flex items-center transition bg-[#3a3a3a] rounded-sm px-3 py-[6px] hover:bg-[#303030] ">
+					class="flex items-center transition bg-[#3a3a3a] rounded-sm px-3 py-[6px] hover:bg-[#303030]">
 					<Icon name="mdi:plus" color="#000000" size="22" />
 					<span class="px-2 font-medium text-[15px]">Upload</span>
 				</button>
