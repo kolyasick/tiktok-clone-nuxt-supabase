@@ -1,0 +1,165 @@
+<script setup lang="ts">
+import type { IVideo } from "~/types/user.type"
+const { $videosStore, $authStore, $generalStore } = useNuxtApp()
+interface Props {
+	video: IVideo
+}
+const props = defineProps<Props>()
+
+let isVideoLoading = ref<boolean>(true)
+const isModalVisible = ref<boolean>(false)
+let commentText = ref("")
+
+const createComment = async () => {
+	if (!$authStore.isAuth) {
+		$generalStore.isLoginOpen = true
+		return
+	} else if (!commentText.value.trim()) {
+		return
+	}
+	if (!$authStore.user) return
+
+	const commentData = {
+		id: new Date().getTime(),
+		text: commentText.value,
+		userId: $authStore.user?.id as string,
+		user: $authStore.user,
+		createdAt: new Date(),
+		updatedAt: new Date(),
+		postId: props.video.id,
+	}
+	props.video.comments?.push(commentData)
+	$videosStore.videos?.find((video) => video.id === props.video.id)?.comments?.push(commentData)
+	try {
+		await $videosStore.createComment(props.video, commentText.value)
+	} catch (error) {
+		console.error("Error creating comment:", error)
+	}
+
+	commentText.value = ""
+}
+
+const shareVideo = async (video: IVideo) => {
+	const videoUrl = `${window.location.origin}/video/${video.id}`
+	try {
+		await navigator.clipboard.writeText(videoUrl)
+		isModalVisible.value = true
+		setTimeout(() => {
+			isModalVisible.value = false
+		}, 500)
+	} catch (error) {
+		console.error("Error copying video link:", error)
+		alert("Failed to copy video link")
+	}
+}
+</script>
+<template>
+	<div
+		v-if="video"
+		class="relative comments-container flex flex-col gap-3 bg-[#222222] w-[550px] max-[1240px]:w-[calc(100%-50px)] h-[calc(100vh-50px)] text-white overflow-y-auto px-4 py-4 rounded-xl">
+		<div class="comment-header sticky top-0 bg-[#161616] p-3 rounded-xl mb-4">
+			<div
+				class="flex items-center justify-between gap-4 max-[540px]:flex-col max-[540px]:items-stretch">
+				<NuxtLink class="flex gap-5 items-center" :to="`/profile/${video.user?.id}`">
+					<img class="rounded-full w-12 h-12" :src="video.user?.avatar" alt="" />
+					<span>
+						<h2 class="text-lg font-bold">
+							{{ video.user?.name }}
+						</h2>
+						<p class="text-sm font-light">
+							{{ video.user?.name }} ·
+							{{ video.createdAt }}
+						</p>
+					</span>
+				</NuxtLink>
+
+				<button class="bg-[#F02C56] px-4 py-2 rounded-md">Подписаться</button>
+			</div>
+			<h1 class="text-xl font-semibold text-center mt-5">
+				{{ video.title }}
+			</h1>
+		</div>
+
+		<div class="flex justify-center gap-10 mb-6 border-b pb-5">
+			<div class="text-center flex items-center gap-2">
+				<button
+					@click="$videosStore.toggleLike(video)"
+					class="rounded-full flex items-center bg-[#3a3a3a] p-2 cursor-pointer disabled:bg-gray-300"
+					:class="video.liked ? 'text-[#F02C56]' : 'text-[#EBEBEB]'">
+					<Icon name="mdi:heart" size="25" />
+				</button>
+				<span class="text-xs text-[#EBEBEB] font-semibold">{{ video.likes?.length }}</span>
+			</div>
+
+			<label for="comment-input" class="text-center flex items-center gap-2">
+				<span class="rounded-full flex items-center bg-[#3a3a3a] p-2 cursor-pointer">
+					<Icon color="[#EBEBEB]" name="bx:bxs-message-rounded-dots" size="25" />
+				</span>
+				<span class="text-xs text-[#EBEBEB] font-semibold">{{
+					video.comments?.length
+				}}</span>
+			</label>
+
+			<div class="text-center flex items-center gap-2">
+				<button
+					@click="shareVideo(video)"
+					class="rounded-full flex items-center bg-[#3a3a3a] p-2 cursor-pointer">
+					<Icon name="ri:share-forward-fill" color="[#EBEBEB]" size="25" />
+				</button>
+				<span class="text-xs text-[#EBEBEB] font-semibold">0</span>
+			</div>
+		</div>
+
+		<div v-for="comment in video.comments" :key="comment.id">
+			<div class="flex items-center gap-3">
+				<NuxtLink :href="`/profile/${comment.user?.id}`">
+					<img class="rounded-full" width="40" :src="comment.user?.avatar" />
+				</NuxtLink>
+				<div>
+					<NuxtLink :href="`/profile/${comment.user?.id}`" class="font-semibold">{{
+						comment.user?.name
+					}}</NuxtLink>
+					<p class="text-sm font-light text-gray-200">{{ comment.text }}</p>
+				</div>
+			</div>
+		</div>
+
+		<div class="comment-form bg-[#161616] absolute bottom-0 w-full left-0 p-3">
+			<div class="flex items-center gap-3">
+				<input
+					@keyup.enter="createComment"
+					class="comment-input w-full bg-[#1E1E1E] rounded-md p-2 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#F02C56] transition duration-200"
+					type="text"
+                    id="comment-input"
+					v-model="commentText"
+					placeholder="Напишите комментарий..." />
+				<button
+					:disabled="!commentText"
+					@click="createComment()"
+					class="bg-[#F02C56] px-4 py-2 text-sm rounded-md hover:bg-[#e0244a] transition duration-200 disabled:bg-gray-400">
+					Отправить
+				</button>
+			</div>
+		</div>
+	</div>
+	<transition name="modal">
+		<div
+			v-if="isModalVisible"
+			class="modal fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50">
+			<div class="bg-white p-4 rounded shadow-lg">
+				<p>Video link copied to clipboard!</p>
+			</div>
+		</div>
+	</transition>
+</template>
+
+<style scoped>
+.modal-enter-active,
+.modal-leave-active {
+	transition: opacity 0.5s;
+}
+.modal-enter,
+.modal-leave-to {
+	opacity: 0;
+}
+</style>
