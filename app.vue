@@ -1,4 +1,5 @@
 <template>
+	<NuxtLoadingIndicator color="#F02C56" />
 	<NuxtPage />
 
 	<AuthOverlay v-if="$generalStore.isLoginOpen" />
