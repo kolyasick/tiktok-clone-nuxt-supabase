@@ -7,11 +7,13 @@ definePageMeta({
 
 useSeoMeta({
 	title: "Podvodni-Tok",
+	ogTitle: "Podvodni-Tok",
 	description: "Create and share videos with your friends on Podvodni-Tok",
+	ogDescription: "Create and share videos with your friends on Podvodni-Tok",
 	ogImage:
 		"https://cnftqjluuyftofvirwbb.supabase.co/storage/v1/object/public/uploads/avatars/default-avatar.jpg",
-	ogTitle: "Podvodni-Tok",
-	ogDescription: "Create and share videos with your friends on Podvodni-Tok",
+	ogImageHeight: 300,
+	ogUrl: `https://podvodni-tok.com`,
 })
 
 const scrollContainer = ref(null)
