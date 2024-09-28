@@ -9,15 +9,9 @@ interface Props {
 const props = defineProps<Props>()
 const route = useRoute()
 const videoUrl = "https://podvodni-tok.netlify.app" + route.fullPath
-console.log(videoUrl)
 
 const isModalVisible = ref<boolean>(false)
-const isSharePopupOpen = ref<boolean>(false)
 let commentText = ref("")
-
-const toggleSharePopup = () => {
-	isSharePopupOpen.value = !isSharePopupOpen.value
-}
 
 const createComment = async () => {
 	if (!$authStore.isAuth) {
