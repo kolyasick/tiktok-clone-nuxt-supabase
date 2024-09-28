@@ -214,7 +214,7 @@ const toggleMute = () => {
 @media (max-width: 600px) {
 	.video-wrapper {
 		width: 100%;
-		height: 500px;
+		height: 100%;
 	}
 }
 @media (min-width: 1200px) {

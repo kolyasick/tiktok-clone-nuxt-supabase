@@ -101,7 +101,7 @@ const shareVideo = async () => {
 			</a>
 		</div>
 
-		<div class="flex justify-center gap-10 mb-6 border-b pb-5">
+		<div class="flex justify-center gap-10 mb-6 border-b pb-5 max-[330px]:gap-6">
 			<div class="text-center flex items-center gap-2">
 				<button
 					@click="$videosStore.toggleLike(video)"
