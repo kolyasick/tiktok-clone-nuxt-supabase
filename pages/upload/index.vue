@@ -160,8 +160,12 @@ const clearVideo = () => {
 					v-else
 					class="md:mx-0 mx-auto mt-4 md:mb-12 mb-16 flex items-center justify-center w-full max-w-[260px] h-[540px] p-3 rounded-2xl cursor-pointer relative">
 					<div class="bg-black h-full w-full" />
-					<NuxtImg class="absolute z-20 pointer-events-none" src="/mobile-case.png" />
 					<NuxtImg
+						format="webp"
+						class="absolute z-20 pointer-events-none"
+						src="/mobile-case.png" />
+					<NuxtImg
+						format="webp"
 						class="absolute right-4 bottom-6 z-20"
 						width="90"
 						src="/tiktok-logo-white.png" />

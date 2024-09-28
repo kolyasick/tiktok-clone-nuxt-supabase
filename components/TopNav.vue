@@ -45,10 +45,10 @@ const isLoggedIn = () => {
 					<Icon class="mr-5" name="bx:message-detail" color="#161724" size="27" />
 					<div class="relative">
 						<button class="mt-1" @click="showMenu = !showMenu">
-							<img
+							<NuxtImg
+								format="webp"
 								class="rounded-full border"
 								width="33"
-								preload="auto"
 								:src="$authStore.user?.avatar" />
 						</button>
 

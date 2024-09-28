@@ -107,7 +107,8 @@ const onVideoLoaded = () => {
 							<NuxtLink
 								:to="`/profile/${video.user?.id}`"
 								class="flex items-center gap-2">
-								<img
+								<NuxtImg
+									format="webp"
 									class="rounded-full border"
 									width="33"
 									:src="video.user?.avatar" />

@@ -64,7 +64,7 @@ const shareVideo = async () => {
 			<div
 				class="flex items-center justify-between gap-4 max-[540px]:flex-col max-[540px]:items-stretch">
 				<NuxtLink class="flex gap-5 items-center" :to="`/profile/${video.user?.id}`">
-					<img class="rounded-full w-12 h-12" :src="video.user?.avatar" alt="" />
+					<NuxtImg format="webp" class="rounded-full w-12 h-12" :src="video.user?.avatar" alt="" />
 					<span>
 						<h2 class="text-lg font-bold">
 							{{ video.user?.name }}
@@ -131,7 +131,7 @@ const shareVideo = async () => {
 			:key="comment.id">
 			<div class="flex items-center gap-3">
 				<NuxtLink :href="`/profile/${comment.user?.id}`">
-					<img class="rounded-full" width="40" :src="comment.user?.avatar" />
+					<NuxtImg format="webp" class="rounded-full" width="40" :src="comment.user?.avatar" />
 				</NuxtLink>
 				<div>
 					<NuxtLink :href="`/profile/${comment.user?.id}`" class="font-semibold">

@@ -12,6 +12,9 @@ export default defineNuxtConfig({
 	supabase: {
 		redirect: false,
 	},
+	image: {
+		domains: ["https://cnftqjluuyftofvirwbb.supabase.co"],
+	},
 	pages: true,
 	app: {
 		head: {
@@ -21,7 +24,7 @@ export default defineNuxtConfig({
 				{
 					rel: "icon",
 					type: "image/x-icon",
-					href: "https://cnftqjluuyftofvirwbb.supabase.co/storage/v1/object/public/uploads/avatars/tiktok-logo-small.png",
+					href: "/tiktok-logo-small.png",
 				},
 			],
 		},
