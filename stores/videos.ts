@@ -23,20 +23,23 @@ export const useVideosStore = defineStore("general", {
 		},
 
 		async getVideos() {
-			// if (!this.hasMore || this.isLoading) return
+			if (!this.hasMore || this.isLoading) return
 
 			this.isLoading = true
 
 			try {
 				const authStore = useAuthStore()
 
-				const { data, error } = await useFetch<IVideo[]>("/api/get-videos", {
+				const { data, error, refresh } = await useFetch<IVideo[]>("/api/get-videos", {
 					query: {
 						offset: this.offset,
 						limit: this.limit,
 					},
 				})
-				if (error.value) throw error.value
+				if (!data.value) {
+					await refresh()
+					return
+				}
 
 				const videoData = data.value?.map((video: IVideo) => ({
 					...video,
@@ -45,11 +48,9 @@ export const useVideosStore = defineStore("general", {
 
 				this.videos.push(...(videoData || []))
 
-				if (data.value) {
-					if (this.videos.length >= data.value?.length) {
-						this.hasMore = false
-					}
-
+				if (videoData && videoData?.length < this.limit) {
+					this.hasMore = false
+				} else {
 					this.offset += this.limit
 				}
 			} catch (error) {

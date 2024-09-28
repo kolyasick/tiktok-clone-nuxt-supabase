@@ -12,9 +12,25 @@ let volume = ref<number>(5)
 let isMuted = ref<boolean>(true)
 let isPlaying = ref<boolean>(false)
 let isVideoLoading = ref<boolean>(true)
+const nuxt = useNuxtApp()
 
-const { data: video, error, status } = await useFetch<IVideo>(`/api/get-video/${route.params.id}`)
-if (video.value) {
+const { data: video, refresh } = await useFetch<IVideo>(`/api/get-video/${route.params.id}`, {
+	key: `video-${route.params.id}`,
+	getCachedData: (key) => {
+		if (nuxt.isHydrating && nuxt.payload.data[key]) {
+			return nuxt.payload.data[key]
+		}
+
+		if (nuxt.static.data[key]) {
+			return nuxt.static.data[key]
+		}
+
+		return null
+	},
+})
+if (!video.value) {
+	await refresh()
+} else {
 	video.value = {
 		...video.value,
 		liked: video.value?.likes?.some((like) => like.userId === $authStore.user?.id),
