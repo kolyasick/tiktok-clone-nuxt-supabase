@@ -26,7 +26,7 @@ useSeoMeta({
 	ogTitle: `Podvodni-Tok · ${video.value?.user?.name}`,
 	description: `Podvodni-Tok · ${video.value?.title}`,
 	ogDescription: `Podvodni-Tok · ${video.value?.title}`,
-	ogImage: "/assets/images/tiktok-logo.png",
+	ogImage: "https://cnftqjluuyftofvirwbb.supabase.co/storage/v1/object/public/uploads/avatars/default-avatar.jpg",
 	ogImageHeight: 300,
 	ogUrl: `https://podvodni-tok.com/video/${video.value?.id}`,
 })

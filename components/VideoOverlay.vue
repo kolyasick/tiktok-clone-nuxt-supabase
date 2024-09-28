@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { IVideo } from "~/types/user.type"
-import { formatDate } from "~/utils/formatDate";
+import { formatDate } from "~/utils/formatDate"
 
 const { $videosStore, $authStore, $generalStore } = useNuxtApp()
 interface Props {
@@ -75,7 +75,9 @@ const shareVideo = async (video: IVideo) => {
 					</span>
 				</NuxtLink>
 
-				<button @click="shareVideo(video)" class="bg-[#F02C56] px-4 py-2 rounded-md">Поделиться</button>
+				<button @click="shareVideo(video)" class="bg-[#F02C56] px-4 py-2 rounded-md">
+					Поделиться
+				</button>
 			</div>
 			<h1 class="text-xl font-semibold text-center mt-5">
 				{{ video.title }}
@@ -112,19 +114,32 @@ const shareVideo = async (video: IVideo) => {
 			</div>
 		</div>
 
-		<div class="flex justify-between bg-[#2b2b2b] p-2 rounded-xl border border-[#3a3a3a]" v-for="comment in video.comments" :key="comment.id">
+		<div
+			class="flex justify-between bg-[#2b2b2b] p-2 rounded-xl border border-[#3a3a3a]"
+			v-for="comment in video.comments"
+			:key="comment.id">
 			<div class="flex items-center gap-3">
 				<NuxtLink :href="`/profile/${comment.user?.id}`">
 					<img class="rounded-full" width="40" :src="comment.user?.avatar" />
 				</NuxtLink>
 				<div>
-					<NuxtLink :href="`/profile/${comment.user?.id}`" class="font-semibold">{{
-						comment.user?.name
-					}}</NuxtLink>
+					<NuxtLink :href="`/profile/${comment.user?.id}`" class="font-semibold">
+						<p>
+							{{
+								comment.user?.name === $authStore.user?.name
+									? "you"
+									: comment.user?.name
+							}}
+							<span class="text-gray-500 text-sm">
+								·
+								{{ comment.user?.name === video.user?.name ? "author" : "" }}</span
+							>
+						</p>
+					</NuxtLink>
 					<p class="text-sm font-light text-gray-200">{{ comment.text }}</p>
 				</div>
 			</div>
-			<span class="self-end text-gray-500">
+			<span class="self-end text-gray-500 border-b p-1 border-[#3a3a3a]">
 				{{ formatDate(comment.createdAt) }}
 			</span>
 		</div>
@@ -135,7 +150,7 @@ const shareVideo = async (video: IVideo) => {
 					@keyup.enter="createComment"
 					class="comment-input w-full bg-[#1E1E1E] rounded-md p-2 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#F02C56] transition duration-200"
 					type="text"
-                    id="comment-input"
+					id="comment-input"
 					v-model="commentText"
 					placeholder="Напишите комментарий..." />
 				<button

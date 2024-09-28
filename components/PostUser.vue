@@ -48,7 +48,7 @@ const displayPost = (video: IVideo) => {
 			class="absolute flex items-center justify-center top-0 left-0 aspect-[3/4] w-full object-cover rounded-md bg-black">
 			<Icon class="animate-spin ml-1 text-white" name="mingcute:loading-line" size="100" />
 		</div>
-		<div>
+		<div class="border rounded border-[#2a2a2a]">
 			<video
 				ref="videoRef"
 				muted
