@@ -1,6 +1,7 @@
 import type { IUser } from "./../types/user.type"
 import { defineStore } from "pinia"
 import { useGeneralStore } from "~/stores/general"
+import { useVideosStore } from "~/stores/videos"
 import { validateEmail, validatePassword, validateName } from "~/utils/validationUtils"
 
 interface IErrors {
@@ -70,6 +71,8 @@ export const useAuthStore = defineStore("auth", {
 				email = ""
 				password = ""
 				name = ""
+				useVideosStore().clearVideos()
+				await useVideosStore().getVideos()
 				useGeneralStore().isLoginOpen = false
 			} catch (error: any) {
 				this.errors.other = error.message
@@ -100,9 +103,13 @@ export const useAuthStore = defineStore("auth", {
 				this.set(true, user.value)
 				email = ""
 				password = ""
+				useVideosStore().clearVideos()
+				await useVideosStore().getVideos()
 				useGeneralStore().isLoginOpen = false
 			} catch (error: any) {
 				this.errors.other = error.message
+			} finally {
+				this.isLoading = false
 			}
 		},
 		async getUser() {

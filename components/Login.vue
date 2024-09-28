@@ -25,11 +25,11 @@
 
 	<div class="px-6 pb-2 mt-6">
 		<button
-			:disabled="!email || !password"
+			:disabled="!email || !password || $authStore.isLoading"
 			:class="!email || !password ? 'bg-gray-200' : 'bg-[#F02C56]'"
 			@click="$authStore.login(email, password)"
 			class="w-full text-[17px] transition font-semibold text-white py-3 rounded-sm disabled:bg-gray-400">
-			Log in
+			{{ $authStore.isLoading ? "Loading..." : "Log in" }}
 		</button>
 	</div>
 	<span class="px-6 text-[14px] text-red-600" v-if="$authStore.errors.other">

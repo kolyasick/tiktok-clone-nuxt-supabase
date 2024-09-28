@@ -1,7 +1,7 @@
 import type { Users, Videos, Likes, Comments } from "@prisma/client"
 
 export interface IUser extends Users {
-	Videos?: Videos[]
+	videos?: Videos[]
 	likes?: ILike[]
 	comments?: IComment[]
 }

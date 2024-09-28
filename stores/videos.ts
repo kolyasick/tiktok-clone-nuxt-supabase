@@ -16,6 +16,11 @@ export const useVideosStore = defineStore("general", {
 		set(videos: IVideo[]) {
 			this.$patch({ videos })
 		},
+		clearVideos() {
+			this.set([])
+			this.offset = 0
+			this.hasMore = true
+		},
 
 		async getVideos() {
 			// if (!this.hasMore || this.isLoading) return

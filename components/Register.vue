@@ -33,11 +33,11 @@
 
 	<div class="px-6 pb-2 mt-6">
 		<button
-			:disabled="!name || !email || !password"
+			:disabled="!name || !email || !password || $authStore.isLoading"
 			:class="!name || !email || !password ? 'bg-gray-200' : 'bg-[#F02C56]'"
 			@click="$authStore.register(email, password, name)"
 			class="w-full text-[17px] font-semibold text-white bg-[#F02C56] py-3 rounded-sm disabled:bg-gray-400">
-			Sign up
+			{{ $authStore.isLoading ? "Loading..." : "Register" }}
 		</button>
 	</div>
 	<span class="px-6 text-[14px] text-red-500" v-if="$authStore.errors.other">

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { IVideo } from "~/types/user.type"
+import { formatDate } from "~/utils/formatDate";
+
 const { $videosStore, $authStore, $generalStore } = useNuxtApp()
 interface Props {
 	video: IVideo
@@ -68,12 +70,12 @@ const shareVideo = async (video: IVideo) => {
 						</h2>
 						<p class="text-sm font-light">
 							{{ video.user?.name }} ·
-							{{ video.createdAt }}
+							{{ formatDate(video.createdAt) }}
 						</p>
 					</span>
 				</NuxtLink>
 
-				<button class="bg-[#F02C56] px-4 py-2 rounded-md">Подписаться</button>
+				<button @click="shareVideo(video)" class="bg-[#F02C56] px-4 py-2 rounded-md">Поделиться</button>
 			</div>
 			<h1 class="text-xl font-semibold text-center mt-5">
 				{{ video.title }}
@@ -110,7 +112,7 @@ const shareVideo = async (video: IVideo) => {
 			</div>
 		</div>
 
-		<div v-for="comment in video.comments" :key="comment.id">
+		<div class="flex justify-between bg-[#2b2b2b] p-2 rounded-xl border border-[#3a3a3a]" v-for="comment in video.comments" :key="comment.id">
 			<div class="flex items-center gap-3">
 				<NuxtLink :href="`/profile/${comment.user?.id}`">
 					<img class="rounded-full" width="40" :src="comment.user?.avatar" />
@@ -122,6 +124,9 @@ const shareVideo = async (video: IVideo) => {
 					<p class="text-sm font-light text-gray-200">{{ comment.text }}</p>
 				</div>
 			</div>
+			<span class="self-end text-gray-500">
+				{{ formatDate(comment.createdAt) }}
+			</span>
 		</div>
 
 		<div class="comment-form bg-[#161616] absolute bottom-0 w-full left-0 p-3">
@@ -146,7 +151,7 @@ const shareVideo = async (video: IVideo) => {
 		<div
 			v-if="isModalVisible"
 			class="modal fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50">
-			<div class="bg-white p-4 rounded shadow-lg">
+			<div class="bg-[#2a2a2a] p-4 rounded shadow-lg">
 				<p>Video link copied to clipboard!</p>
 			</div>
 		</div>

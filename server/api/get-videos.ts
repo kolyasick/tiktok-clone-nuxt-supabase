@@ -15,6 +15,9 @@ export default defineEventHandler(async (event) => {
 			comments: true,
 			user: true,
 		},
+		orderBy: {
+			createdAt: "desc",
+		},
 	})
 
 	return videos || []
