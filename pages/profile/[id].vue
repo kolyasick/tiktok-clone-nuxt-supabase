@@ -79,9 +79,14 @@ const { data: user, error } = await useFetch<IUser>(`/api/get-user/${route.param
 		return data
 	},
 })
+
 if (error.value) {
-	throw createError({ statusCode: error.value?.status, statusMessage: error.value?.statusText })
+	throw createError({
+		statusCode: error.value.statusCode,
+		statusMessage: error.value.statusMessage,
+	})
 }
+
 useSeoMeta({
 	title: `Podvodni-Tok - ${user.value?.name}'s profile`,
 	ogTitle: `Podvodni-Tok - ${user.value?.name}'s profile`,

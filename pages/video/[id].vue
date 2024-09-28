@@ -14,14 +14,19 @@ let isPlaying = ref<boolean>(false)
 let isVideoLoading = ref<boolean>(true)
 const nuxt = useNuxtApp()
 
-const { data: video, refresh } = await useFetch<IVideo>(`/api/get-video/${route.params.id}`, {
+const { data: video, error } = await useFetch<IVideo>(`/api/get-video/${route.params.id}`, {
 	key: `video-${route.params.id}`,
 	getCachedData: (key) => {
 		const data = nuxt.payload.data[key] || nuxt.static.data[key]
 		return data
 	},
 })
-
+if (error.value) {
+	throw createError({
+		statusCode: error.value.statusCode,
+		statusMessage: error.value.statusMessage,
+	})
+}
 if (video.value) {
 	video.value = {
 		...video.value,
