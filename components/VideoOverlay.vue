@@ -59,12 +59,16 @@ const shareVideo = async () => {
 <template>
 	<div
 		v-if="video"
-		class="relative comments-container flex flex-col gap-3 bg-[#222222] w-[550px] max-[1240px]:w-[calc(100%-50px)] h-[calc(100vh-50px)] text-white overflow-y-auto px-4 py-4 rounded-xl">
-		<div class="comment-header sticky top-0 bg-[#161616] p-3 rounded-xl">
+		class="relative comments-container flex flex-col gap-3 bg-[#222222] w-[550px] max-[1240px]:w-[calc(100%-50px)] h-[calc(100vh-50px)] text-white overflow-hidden px-4 py-4 rounded-xl">
+		<div class="comment-header sticky top-0 bg-[#161616] p-3 rounded-xl z-10">
 			<div
 				class="flex items-center justify-between gap-4 max-[540px]:flex-col max-[540px]:items-stretch">
 				<NuxtLink class="flex gap-5 items-center" :to="`/profile/${video.user?.id}`">
-					<NuxtImg format="webp" class="rounded-full w-12 h-12" :src="video.user?.avatar" alt="" />
+					<NuxtImg
+						format="webp"
+						class="rounded-full w-12 h-12"
+						:src="video.user?.avatar"
+						alt="" />
 					<span>
 						<h2 class="text-lg font-bold">
 							{{ video.user?.name }}
@@ -84,6 +88,7 @@ const shareVideo = async () => {
 				{{ video.title }}
 			</h1>
 		</div>
+
 		<div class="flex items-center justify-center gap-5 my-1">
 			<a :href="`https://telegram.me/share/url?url=${videoUrl}`" target="_blank">
 				<Icon name="mdi:telegram" size="30" />
@@ -95,6 +100,7 @@ const shareVideo = async () => {
 				<Icon name="mdi:vk" size="30" />
 			</a>
 		</div>
+
 		<div class="flex justify-center gap-10 mb-6 border-b pb-5">
 			<div class="text-center flex items-center gap-2">
 				<button
@@ -126,33 +132,43 @@ const shareVideo = async () => {
 		</div>
 
 		<div
-			class="flex justify-between bg-[#2b2b2b] p-2 rounded-xl border border-[#3a3a3a]"
-			v-for="comment in video.comments"
-			:key="comment.id">
-			<div class="flex items-center gap-3">
-				<NuxtLink :href="`/profile/${comment.user?.id}`">
-					<NuxtImg format="webp" class="rounded-full" width="40" :src="comment.user?.avatar" />
-				</NuxtLink>
-				<div>
-					<NuxtLink :href="`/profile/${comment.user?.id}`" class="font-semibold">
-						<p>
-							{{
-								comment.user?.name === $authStore.user?.name
-									? "you"
-									: comment.user?.name
-							}}
-							<span class="text-gray-500 text-sm">
-								·
-								{{ comment.user?.name === video.user?.name ? "author" : "" }}</span
-							>
-						</p>
+			class="comments-list overflow-y-auto flex-grow space-y-4 pr-2 mb-16"
+			style="max-height: calc(100vh - 260px)">
+			<div
+				class="flex justify-between bg-[#2b2b2b] p-2 rounded-xl border border-[#3a3a3a]"
+				v-for="comment in video.comments"
+				:key="comment.id">
+				<div class="flex items-center gap-3">
+					<NuxtLink :href="`/profile/${comment.user?.id}`">
+						<NuxtImg
+							format="webp"
+							class="rounded-full"
+							width="40"
+							:src="comment.user?.avatar" />
 					</NuxtLink>
-					<p class="text-sm font-light text-gray-200">{{ comment.text }}</p>
+					<div>
+						<NuxtLink :href="`/profile/${comment.user?.id}`" class="font-semibold">
+							<p>
+								{{
+									comment.user?.name === $authStore.user?.name
+										? "you"
+										: comment.user?.name
+								}}
+								<span class="text-gray-500 text-sm">
+									·
+									{{
+										comment.user?.name === video.user?.name ? "author" : ""
+									}}</span
+								>
+							</p>
+						</NuxtLink>
+						<p class="text-sm font-light text-gray-200">{{ comment.text }}</p>
+					</div>
 				</div>
+				<span class="self-end text-gray-500 border-b p-1 border-[#3a3a3a]">
+					{{ formatDate(comment.createdAt) }}
+				</span>
 			</div>
-			<span class="self-end text-gray-500 border-b p-1 border-[#3a3a3a]">
-				{{ formatDate(comment.createdAt) }}
-			</span>
 		</div>
 
 		<div class="comment-form bg-[#161616] absolute bottom-0 w-full left-0 p-3">
@@ -173,6 +189,7 @@ const shareVideo = async () => {
 			</div>
 		</div>
 	</div>
+
 	<transition name="modal">
 		<div
 			v-if="isModalVisible"
