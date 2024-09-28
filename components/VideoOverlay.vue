@@ -7,9 +7,17 @@ interface Props {
 	video: IVideo
 }
 const props = defineProps<Props>()
+const route = useRoute()
+const videoUrl = "https://podvodni-tok.netlify.app" + route.fullPath
+console.log(videoUrl)
 
 const isModalVisible = ref<boolean>(false)
+const isSharePopupOpen = ref<boolean>(false)
 let commentText = ref("")
+
+const toggleSharePopup = () => {
+	isSharePopupOpen.value = !isSharePopupOpen.value
+}
 
 const createComment = async () => {
 	if (!$authStore.isAuth) {
@@ -39,11 +47,9 @@ const createComment = async () => {
 	} catch (error) {
 		console.error("Error creating comment:", error)
 	}
-
 }
 
-const shareVideo = async (video: IVideo) => {
-	const videoUrl = `${window.location.origin}/video/${video.id}`
+const shareVideo = async () => {
 	try {
 		await navigator.clipboard.writeText(videoUrl)
 		isModalVisible.value = true
@@ -60,7 +66,7 @@ const shareVideo = async (video: IVideo) => {
 	<div
 		v-if="video"
 		class="relative comments-container flex flex-col gap-3 bg-[#222222] w-[550px] max-[1240px]:w-[calc(100%-50px)] h-[calc(100vh-50px)] text-white overflow-y-auto px-4 py-4 rounded-xl">
-		<div class="comment-header sticky top-0 bg-[#161616] p-3 rounded-xl mb-4">
+		<div class="comment-header sticky top-0 bg-[#161616] p-3 rounded-xl">
 			<div
 				class="flex items-center justify-between gap-4 max-[540px]:flex-col max-[540px]:items-stretch">
 				<NuxtLink class="flex gap-5 items-center" :to="`/profile/${video.user?.id}`">
@@ -76,7 +82,7 @@ const shareVideo = async (video: IVideo) => {
 					</span>
 				</NuxtLink>
 
-				<button @click="shareVideo(video)" class="bg-[#F02C56] px-4 py-2 rounded-md">
+				<button @click="shareVideo()" class="bg-[#F02C56] px-4 py-2 rounded-md">
 					Поделиться
 				</button>
 			</div>
@@ -84,7 +90,17 @@ const shareVideo = async (video: IVideo) => {
 				{{ video.title }}
 			</h1>
 		</div>
-
+		<div class="flex items-center justify-center gap-5 my-1">
+			<a :href="`https://telegram.me/share/url?url=${videoUrl}`" target="_blank">
+				<Icon name="mdi:telegram" size="30" />
+			</a>
+			<a :href="`https://wa.me/?text=${videoUrl}`" target="_blank">
+				<Icon name="mdi:whatsapp" size="30" />
+			</a>
+			<a :href="`https://vk.com/share.php?url=${videoUrl}`" target="_blank">
+				<Icon name="mdi:vk" size="30" />
+			</a>
+		</div>
 		<div class="flex justify-center gap-10 mb-6 border-b pb-5">
 			<div class="text-center flex items-center gap-2">
 				<button
@@ -107,7 +123,7 @@ const shareVideo = async (video: IVideo) => {
 
 			<div class="text-center flex items-center gap-2">
 				<button
-					@click="shareVideo(video)"
+					@click="shareVideo()"
 					class="rounded-full flex items-center bg-[#3a3a3a] p-2 cursor-pointer">
 					<Icon name="ri:share-forward-fill" color="[#EBEBEB]" size="25" />
 				</button>

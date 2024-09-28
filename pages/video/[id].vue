@@ -163,7 +163,6 @@ const toggleMute = () => {
 										</button>
 									</div>
 
-									<!-- Иконка воспроизведения, отображаемая когда видео не играет -->
 									<div
 										v-if="!isPlaying && !isVideoLoading"
 										class="play-icon absolute inset-0 flex items-center justify-center text-white">

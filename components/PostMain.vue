@@ -121,7 +121,7 @@ const onVideoLoaded = () => {
 						<div class="text-[14px] text-gray-300 pb-1">#fun #cool #SuperAwesome</div>
 						<div class="text-[14px] flex items-center font-semibold">
 							<Icon name="mdi:music" size="17" />
-							<div class="px-1">{{}}</div>
+							<div class="px-1">{{ video.user?.name }}</div>
 						</div>
 					</div>
 				</div>
