@@ -3,7 +3,10 @@
 		<div
 			class="pt-[90px] 2xl:pl-[185px] lg:pl-[160px] lg:pr-0 pr-2 w-[calc(100%-90px)] max-w-[1800px] 2xl:mx-auto">
 			<div class="flex w-full items-center">
-				<NuxtImg format="webp" class="rounded-full w-[150px] max-[450px]:w-[90px] max-[450px]:h-[90px]" :src="user?.avatar" />
+				<NuxtImg
+					format="webp"
+					class="rounded-full w-[150px] max-[450px]:w-[90px] max-[450px]:h-[90px]"
+					:src="user?.avatar" />
 				<div class="ml-5 w-full">
 					<div class="text-[30px] font-bold truncate">
 						{{ user?.name }}
@@ -64,15 +67,21 @@ import type { IUser } from "~/types/user.type"
 
 const { $authStore, $generalStore } = useNuxtApp()
 const route = useRoute()
+const nuxt = useNuxtApp()
 definePageMeta({
 	layout: "main-layout",
 })
 
-const { data: user, error, status } = await useFetch<IUser>(`/api/get-user/${route.params.id}`)
+const { data: user, error } = await useFetch<IUser>(`/api/get-user/${route.params.id}`, {
+	key: `profile-${route.params.id}`,
+	getCachedData: (key) => {
+		const data = nuxt.payload.data[key] || nuxt.static.data[key]
+		return data
+	},
+})
 if (error.value) {
-	console.log(error.value)
+	throw createError({ statusCode: error.value?.status, statusMessage: error.value?.statusText })
 }
-
 useSeoMeta({
 	title: `Podvodni-Tok - ${user.value?.name}'s profile`,
 	ogTitle: `Podvodni-Tok - ${user.value?.name}'s profile`,

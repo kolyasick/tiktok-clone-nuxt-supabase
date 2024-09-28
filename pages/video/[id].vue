@@ -17,20 +17,12 @@ const nuxt = useNuxtApp()
 const { data: video, refresh } = await useFetch<IVideo>(`/api/get-video/${route.params.id}`, {
 	key: `video-${route.params.id}`,
 	getCachedData: (key) => {
-		if (nuxt.isHydrating && nuxt.payload.data[key]) {
-			return nuxt.payload.data[key]
-		}
-
-		if (nuxt.static.data[key]) {
-			return nuxt.static.data[key]
-		}
-
-		return null
+		const data = nuxt.payload.data[key] || nuxt.static.data[key]
+		return data
 	},
 })
-if (!video.value) {
-	await refresh()
-} else {
+
+if (video.value) {
 	video.value = {
 		...video.value,
 		liked: video.value?.likes?.some((like) => like.userId === $authStore.user?.id),
