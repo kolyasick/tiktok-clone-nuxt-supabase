@@ -106,18 +106,14 @@ export const useAuthStore = defineStore("auth", {
 			}
 		},
 		async getUser() {
-			try {
-				useSupabaseClient().auth.onAuthStateChange(async (event, session) => {
-					if (session) {
-						const { data } = await useFetch<IUser>(`/api/get-user/${session.user.id}`)
+			const user = useSupabaseUser()
 
-						this.set(true, data.value)
-					} else {
-						this.set(false, null)
-					}
-				})
+			if (!user.value) return
+
+			try {
+				const { data } = await useFetch<IUser>(`/api/get-user/${user.value?.id}`)
+				this.set(true, data.value)
 			} catch (error) {
-				console.error("Произошла ошибка:", error)
 				throw error
 			}
 		},
