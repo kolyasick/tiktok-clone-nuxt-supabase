@@ -88,8 +88,8 @@ const shareVideo = async () => {
 				{{ video.title }}
 			</h1>
 		</div>
-
-		<div class="flex items-center justify-center gap-5 my-1">
+		<span class="text-center text-gray-500">Поделиться в:</span>
+		<div class="flex items-center justify-center gap-5 mb-1">
 			<a :href="`https://telegram.me/share/url?url=${videoUrl}`" target="_blank">
 				<Icon name="mdi:telegram" size="30" />
 			</a>
