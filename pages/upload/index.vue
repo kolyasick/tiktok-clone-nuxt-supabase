@@ -160,13 +160,11 @@ const clearVideo = () => {
 					v-else
 					class="md:mx-0 mx-auto mt-4 md:mb-12 mb-16 flex items-center justify-center w-full max-w-[260px] h-[540px] p-3 rounded-2xl cursor-pointer relative">
 					<div class="bg-black h-full w-full" />
-					<img
-						class="absolute z-20 pointer-events-none"
-						src="~/assets/images/mobile-case.png" />
-					<img
+					<NuxtImg class="absolute z-20 pointer-events-none" src="/mobile-case.png" />
+					<NuxtImg
 						class="absolute right-4 bottom-6 z-20"
 						width="90"
-						src="~/assets/images/tiktok-logo-white.png" />
+						src="/tiktok-logo-white.png" />
 					<video
 						autoplay
 						loop
