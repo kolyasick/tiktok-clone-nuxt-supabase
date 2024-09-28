@@ -135,7 +135,8 @@ const onVideoLoaded = () => {
 								<Icon
 									name="mdi:heart"
 									size="25"
-									:class="video.liked ? 'text-red-500' : ''" />
+									:class="video.liked ? 'text-red-500' : ''"
+									class="transition" />
 							</button>
 							<span class="text-xs text-[#EBEBEB] font-semibold">{{
 								video.likes?.length

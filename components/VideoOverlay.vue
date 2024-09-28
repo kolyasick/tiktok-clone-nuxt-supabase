@@ -8,7 +8,6 @@ interface Props {
 }
 const props = defineProps<Props>()
 
-let isVideoLoading = ref<boolean>(true)
 const isModalVisible = ref<boolean>(false)
 let commentText = ref("")
 
@@ -32,13 +31,15 @@ const createComment = async () => {
 	}
 	props.video.comments?.push(commentData)
 	$videosStore.videos?.find((video) => video.id === props.video.id)?.comments?.push(commentData)
+	let comment = commentText.value
+	commentText.value = ""
+
 	try {
-		await $videosStore.createComment(props.video, commentText.value)
+		await $videosStore.createComment(props.video, comment)
 	} catch (error) {
 		console.error("Error creating comment:", error)
 	}
 
-	commentText.value = ""
 }
 
 const shareVideo = async (video: IVideo) => {
@@ -88,7 +89,7 @@ const shareVideo = async (video: IVideo) => {
 			<div class="text-center flex items-center gap-2">
 				<button
 					@click="$videosStore.toggleLike(video)"
-					class="rounded-full flex items-center bg-[#3a3a3a] p-2 cursor-pointer disabled:bg-gray-300"
+					class="rounded-full transition flex items-center bg-[#3a3a3a] p-2 cursor-pointer disabled:bg-gray-300"
 					:class="video.liked ? 'text-[#F02C56]' : 'text-[#EBEBEB]'">
 					<Icon name="mdi:heart" size="25" />
 				</button>
