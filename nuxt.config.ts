@@ -9,9 +9,6 @@ export default defineNuxtConfig({
 		"@nuxt/icon",
 		"@nuxt/image",
 	],
-	image: {
-		dir: "assets/images",
-	},
 	supabase: {
 		redirect: false,
 	},
