@@ -3,7 +3,7 @@
 	<NuxtPage />
 
 	<AuthOverlay v-if="$generalStore.isLoginOpen" />
-	<!-- <EditProfileOverlay v-if="true" /> -->
+	<EditProfileOverlay v-if="$generalStore.isEditProfileOpen" />
 </template>
 
 <script setup lang="ts">

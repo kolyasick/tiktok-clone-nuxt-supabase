@@ -68,23 +68,29 @@ import type { IUser } from "~/types/user.type"
 const { $authStore, $generalStore } = useNuxtApp()
 const route = useRoute()
 const nuxt = useNuxtApp()
+const user = ref<IUser | null>(null)
 definePageMeta({
 	layout: "main-layout",
 })
 
-const { data: user, error } = await useFetch<IUser>(`/api/get-user/${route.params.id}`, {
-	key: `profile-${route.params.id}`,
-	getCachedData: (key) => {
-		const data = nuxt.payload.data[key] || nuxt.static.data[key]
-		return data
-	},
-})
-
-if (error.value) {
-	throw createError({
-		statusCode: error.value.statusCode,
-		statusMessage: error.value.statusMessage,
+if ($authStore.user?.id == route.params.id) {
+	user.value = $authStore.user
+} else {
+	const { data, error } = await useFetch<IUser>(`/api/get-user/${route.params.id}`, {
+		key: `profile-${route.params.id}`,
+		getCachedData: (key) => {
+			const data = nuxt.payload.data[key] || nuxt.static.data[key]
+			return data
+		},
 	})
+	if (error.value) {
+		throw createError({
+			statusCode: error.value.statusCode,
+			statusMessage: error.value.statusMessage,
+		})
+	}
+
+	user.value = data.value
 }
 
 useSeoMeta({

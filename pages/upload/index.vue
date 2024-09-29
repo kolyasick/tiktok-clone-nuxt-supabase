@@ -53,7 +53,7 @@ const uploadVideo = async () => {
 	try {
 		const { data } = await supabase.storage
 			.from("uploads")
-			.upload(`videos/${fileName.value + Date.now()}`, fileToUpload.value)
+			.upload(`videos/${Date.now()}`, fileToUpload.value)
 		return data?.fullPath
 	} catch (error) {
 		console.log(error)
@@ -161,7 +161,6 @@ const clearVideo = () => {
 					class="md:mx-0 mx-auto mt-4 md:mb-12 mb-16 flex items-center justify-center w-full max-w-[260px] h-[540px] p-3 rounded-2xl cursor-pointer relative">
 					<div class="bg-black h-full w-full" />
 					<NuxtImg
-						format="webp"
 						class="absolute z-20 pointer-events-none"
 						src="/mobile-case.png" />
 					<NuxtImg
