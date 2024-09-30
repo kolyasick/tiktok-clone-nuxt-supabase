@@ -33,7 +33,6 @@ const isHover = (bool: boolean) => {
 
 const displayPost = (video: IVideo) => {
 	$generalStore.isBackUrl = router.currentRoute.value.path
-	$generalStore.selectedPost = null
 	router.push(`/video/${video.id}`)
 }
 </script>

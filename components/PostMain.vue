@@ -27,7 +27,6 @@ const toggleMute = () => {
 
 const displayPost = (video: IVideo) => {
 	$generalStore.isBackUrl = "/"
-	$generalStore.selectedPost = null
 	router.push(`/video/${video.id}`)
 }
 

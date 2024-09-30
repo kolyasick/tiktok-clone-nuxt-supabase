@@ -6,7 +6,6 @@ import "vue-advanced-cropper/dist/style.css"
 
 const { $generalStore, $authStore } = useNuxtApp()
 
-const supabase = useSupabaseClient()
 const cropper = ref<CropperResult | null>(null)
 
 const file = ref<File | null>(null)
@@ -25,46 +24,33 @@ const getUploadedImage = (e: Event) => {
 		uploadedImage.value = URL.createObjectURL(file.value)
 	}
 }
+
 const cropAndUpdateImage = async () => {
-	if (cropper.value) {
-		const result = (cropper.value as any).getResult()
+	if (!cropper.value) {
+		errors.value = "Something went wrong"
+		return
+	}
 
-		if (result && result.canvas) {
-			result.canvas.toBlob(async (blob: Blob | null) => {
-				if (blob) {
-					try {
-						errors.value = null
-						loading.value = true
+	const result = (cropper.value as any).getResult()
 
-						const fileName = `avatars/${Date.now()}.png`
-						const { data, error } = await supabase.storage
-							.from("uploads")
-							.upload(fileName, blob, {
-								contentType: "image/png",
-							})
+	if (result && result.canvas) {
+		result.canvas.toBlob(async (blob: Blob | null) => {
+			if (blob) {
+				errors.value = null
+				loading.value = true
 
-						if (error) {
-							throw error
-						}
+				const path = await $generalStore.uploadFile(blob, "avatars/", errors.value)
+				await updateUser(path)
 
-						uploadedImage.value = null
-						await updateUser(data.fullPath)
-					} catch (error) {
-						errors.value = "Failed to upload image"
-					} finally {
-						loading.value = false
-					}
-				} else {
-					errors.value = "Something went wrong"
-				}
-			}, "image/png")
-		} else {
-			errors.value = "Something went wrong"
-		}
+				loading.value = false
+			} else {
+				errors.value = "Something went wrong"
+			}
+		}, "image/png")
+	} else {
+		errors.value = "Something went wrong"
 	}
 }
-
-
 
 const updateUser = async (path?: string) => {
 	try {
@@ -72,7 +58,7 @@ const updateUser = async (path?: string) => {
 		loading.value = true
 
 		const url = `https://cnftqjluuyftofvirwbb.supabase.co/storage/v1/object/public/${path}`
-        
+
 		const user = await $fetch<IUser>(`/api/update-user/${$authStore.user?.id}`, {
 			method: "POST",
 			body: {

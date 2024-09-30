@@ -135,37 +135,43 @@ const shareVideo = async () => {
 			class="comments-list overflow-y-auto flex-grow space-y-4 pr-2 mb-16"
 			style="max-height: calc(100vh - 260px)">
 			<div
-				class="flex justify-between bg-[#2b2b2b] p-2 rounded-xl border border-[#3a3a3a]"
+				class="relative bg-[#2b2b2b] p-2 rounded-xl border border-[#3a3a3a] flex items-end justify-between"
 				v-for="comment in video.comments"
 				:key="comment.id">
-				<div class="flex items-center gap-3">
-					<NuxtLink :href="`/profile/${comment.user?.id}`">
-						<NuxtImg
-							format="webp"
-							class="rounded-full"
-							width="40"
-							:src="comment.user?.avatar" />
+				<NuxtLink
+					class="absolute top-2 left-2 w-10 h-10"
+					:href="`/profile/${comment.user?.id}`">
+					<NuxtImg
+						format="webp"
+						class="rounded-full"
+						width="40"
+						height="40"
+						:src="comment.user?.avatar" />
+				</NuxtLink>
+
+				<div class="ml-12">
+					<NuxtLink :href="`/profile/${comment.user?.id}`" class="font-semibold">
+						<p class="text-sm">
+							{{
+								comment.user?.name === $authStore.user?.name
+									? "you"
+									: comment.user?.name
+							}}
+							<span class="text-gray-500 text-sm">
+								{{ comment.user?.name === video.user?.name ? "· author" : "" }}
+							</span>
+						</p>
 					</NuxtLink>
-					<div>
-						<NuxtLink :href="`/profile/${comment.user?.id}`" class="font-semibold">
-							<p>
-								{{
-									comment.user?.name === $authStore.user?.name
-										? "you"
-										: comment.user?.name
-								}}
-								<span class="text-gray-500 text-sm">
-									·
-									{{
-										comment.user?.name === video.user?.name ? "author" : ""
-									}}</span
-								>
-							</p>
-						</NuxtLink>
-						<p class="text-sm font-light text-gray-200">{{ comment.text }}</p>
-					</div>
+
+					<p
+						class="text-sm font-light max-w-[300px] text-gray-200 break-word"
+						style="word-break: break-word">
+						{{ comment.text }}
+					</p>
 				</div>
-				<span class="self-end text-gray-500 border-b p-1 border-[#3a3a3a]">
+
+				<span
+					class="self-end text-gray-500 border-b p-1 border-[#3a3a3a] max-[430px]:text-xs whitespace-nowrap">
 					{{ formatDate(comment.createdAt) }}
 				</span>
 			</div>

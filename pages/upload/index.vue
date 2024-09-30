@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const { $generalStore, $authStore } = useNuxtApp()
-const supabase = useSupabaseClient()
 
 definePageMeta({
 	layout: "upload-layout",
@@ -18,7 +17,7 @@ const errors =
 
 const caption = ref<string | null>(null)
 const fileDisplay = ref<string | null>(null)
-const succes = ref(null)
+const succes = ref<string | null>(null)
 const fileName = ref<string>("")
 const fileToUpload = ref<File | null>(null)
 const loading = ref<boolean>(false)
@@ -44,21 +43,6 @@ const onChange = async (event: Event) => {
 		fileDisplay.value = URL.createObjectURL(file)
 	}
 }
-const uploadVideo = async () => {
-	if (!fileToUpload.value) {
-		errors.video = "Please upload a video"
-		return
-	}
-
-	try {
-		const { data } = await supabase.storage
-			.from("uploads")
-			.upload(`videos/${Date.now()}`, fileToUpload.value)
-		return data?.fullPath
-	} catch (error) {
-		console.log(error)
-	}
-}
 
 const createVideo = async () => {
 	if (!$authStore.isAuth) {
@@ -82,7 +66,7 @@ const createVideo = async () => {
 
 	try {
 		loading.value = true
-		const fullPath = await uploadVideo()
+		const fullPath = await $generalStore.uploadFile(fileToUpload.value, "videos/", errors.video)
 
 		if (!fullPath) {
 			errors.video = "Something went wrong"
@@ -97,8 +81,8 @@ const createVideo = async () => {
 				userId: $authStore.user?.id,
 			},
 		})
-		console.log(data.value)
 		discard()
+		succes.value = "Video uploaded successfully"
 	} catch (error) {
 		console.log(error)
 	} finally {
@@ -160,9 +144,7 @@ const clearVideo = () => {
 					v-else
 					class="md:mx-0 mx-auto mt-4 md:mb-12 mb-16 flex items-center justify-center w-full max-w-[260px] h-[540px] p-3 rounded-2xl cursor-pointer relative">
 					<div class="bg-black h-full w-full" />
-					<NuxtImg
-						class="absolute z-20 pointer-events-none"
-						src="/mobile-case.png" />
+					<NuxtImg class="absolute z-20 pointer-events-none" src="/mobile-case.png" />
 					<NuxtImg
 						format="webp"
 						class="absolute right-4 bottom-6 z-20"

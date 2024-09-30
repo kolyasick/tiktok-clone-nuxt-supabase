@@ -1,22 +1,11 @@
 import { defineStore } from "pinia"
-import type { IVideo } from "~/types/user.type"
 
-interface IGeneralState {
-    isLoginOpen: boolean
-    isEditProfileOpen: boolean
-    selectedPost: IVideo | null
-    isBackUrl: string
-    posts: any
-} 
-
-export const useGeneralStore = defineStore("general", {
+export const useGeneralStore = defineStore("gen", {
 	state: () => ({
-		isLoginOpen: false,
-		isEditProfileOpen: false,
-		selectedPost: {} as IVideo,
-		isBackUrl: "/",
-		posts: null,
-	}) as IGeneralState,
+		isLoginOpen: false as boolean,
+		isEditProfileOpen: false as boolean,
+		isBackUrl: "/" as string,
+	}),
 	actions: {
 		bodySwitch(val: boolean) {
 			if (val) {
@@ -32,6 +21,25 @@ export const useGeneralStore = defineStore("general", {
 
 		setBackUrl(url: string) {
 			this.isBackUrl = url
+		},
+		async uploadFile(file: File | Blob, path: string, errors: string | null) {
+			const supabase = useSupabaseClient()
+
+			if (!file) {
+				errors = "Please upload a video"
+				return
+			}
+
+			const { data, error } = await supabase.storage
+				.from("uploads")
+				.upload(`${path}${Date.now()}`, file)
+
+			if (error) {
+				errors = "Something went wrong"
+				return
+			}
+
+			return data.fullPath
 		},
 	},
 })

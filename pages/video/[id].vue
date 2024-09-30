@@ -136,9 +136,14 @@ const toggleMute = () => {
 					ref="scrollContainer">
 					<div
 						v-if="isVideoLoading"
-						class="loader absolute inset-0 flex items-center justify-center bg-black rounded-xl">
-						<Icon name="mdi:loading" class="animate-spin" size="48" color="white" />
+						class="fixed flex items-center justify-center top-0 left-0 w-full h-screen bg-black z-50 bg-opacity-50">
+						<Icon
+							class="animate-spin ml-1"
+							name="mingcute:loading-line"
+							size="100"
+							color="#FFFFFF" />
 					</div>
+
 					<div v-if="$videosStore.videos.length">
 						<div
 							v-if="video"
