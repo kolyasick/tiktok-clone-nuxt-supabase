@@ -108,7 +108,7 @@ const onVideoLoaded = () => {
 								class="flex items-center gap-2">
 								<NuxtImg
 									format="webp"
-									class="rounded-full border"
+									class="rounded-full"
 									width="33"
 									:src="video.user?.avatar" />
 								<span class="font-bold hover:underline cursor-pointer">

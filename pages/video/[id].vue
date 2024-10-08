@@ -122,11 +122,12 @@ const toggleMute = () => {
 </script>
 
 <template>
+	<TopNav />
 	<div class="flex justify-center items-center min-h-screen bg-[#121212]">
-		<div class="flex max-[1240px]:flex-col items-center gap-2">
+		<div class="flex max-[1240px]:flex-col items-center gap-2 mt-12">
 			<NuxtLink
 				href="/"
-				class="absolute flex cursor-pointer items-center text-white left-0 top-0 z-20 m-5 rounded-full bg-[#3a3a3a] p-1.5 hover:bg-[#363533]">
+				class="absolute flex cursor-pointer justify-self-start text-white left-0 top-14 z-20 m-5 rounded-full bg-[#3a3a3a] p-1.5 hover:bg-[#363533]">
 				<Icon name="material-symbols:close" size="27" />
 			</NuxtLink>
 
@@ -150,9 +151,10 @@ const toggleMute = () => {
 							:id="`PostMain-${video.id}`"
 							ref="videoContainer"
 							class="postmain">
-							<div class="pl-3 px-4 max-[1240px]:p-0">
+							<div class="pl-3 px-6 max-[1240px]:p-0">
 								<div
-									class="video-wrapper relative w-[600px] max-[1240px]:w-full h-[calc(100vh-50px)] flex items-center bg-black rounded-xl cursor-pointer">
+									class="video-wrapper relative w-[600px] max-[1240px]:w-full h-[calc(100vh-111px)] flex items-center bg-black rounded-xl cursor-pointer">
+									<!-- Учтем высоту навбара (61px) и добавим отступ -->
 									<div
 										v-if="false"
 										class="loader absolute inset-0 flex items-center justify-center text-white">
@@ -214,6 +216,8 @@ const toggleMute = () => {
 		</div>
 	</div>
 </template>
+
+
 
 <style scoped>
 @media (max-width: 600px) {

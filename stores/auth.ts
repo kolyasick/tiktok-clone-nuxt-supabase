@@ -71,8 +71,8 @@ export const useAuthStore = defineStore("auth", {
 				email = ""
 				password = ""
 				name = ""
-				useVideosStore().clearVideos()
-				await useVideosStore().getVideos()
+
+				window.location.reload()
 				useGeneralStore().isLoginOpen = false
 			} catch (error: any) {
 				this.errors.other = error.message
@@ -103,8 +103,8 @@ export const useAuthStore = defineStore("auth", {
 				this.set(true, user.value)
 				email = ""
 				password = ""
-				useVideosStore().clearVideos()
-				await useVideosStore().getVideos()
+
+				window.location.reload()
 				useGeneralStore().isLoginOpen = false
 			} catch (error: any) {
 				this.errors.other = error.message
@@ -128,6 +128,7 @@ export const useAuthStore = defineStore("auth", {
 		async logout() {
 			await useSupabaseClient().auth.signOut()
 			this.set(false, null)
+			window.location.reload()
 		},
 	},
 })

@@ -15,7 +15,9 @@ const isLoggedIn = () => {
 }
 </script>
 <template>
-	<div id="TopNav" class="fixed bg-[#121212] z-30 flex items-center w-full h-[61px]">
+	<div
+		id="TopNav"
+		class="fixed bg-[#121212] z-30 flex items-center w-full h-[61px]">
 		<div class="flex items-center justify-between w-full px-2 mx-auto max-w-[1260px]">
 			<div :class="route.fullPath === '/' ? 'w-[80%]' : 'lg:w-[20%] w-[70%]'">
 				<NuxtLink to="/">
@@ -47,7 +49,7 @@ const isLoggedIn = () => {
 						<button class="mt-1" @click="showMenu = !showMenu">
 							<NuxtImg
 								format="webp"
-								class="rounded-full border"
+								class="rounded-full"
 								width="33"
 								:src="$authStore.user?.avatar" />
 						</button>
