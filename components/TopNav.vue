@@ -21,7 +21,7 @@ const isLoggedIn = () => {
 		<div class="flex items-center justify-between w-full px-2 mx-auto max-w-[1260px]">
 			<div :class="route.fullPath === '/' ? 'w-[80%]' : 'lg:w-[20%] w-[70%]'">
 				<NuxtLink to="/">
-					<NuxtImg width="155" src="/logo.svg" />
+					<NuxtImg width="155" src="/tiktok-logo-white.png" />
 				</NuxtLink>
 			</div>
 
